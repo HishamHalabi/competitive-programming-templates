@@ -1,0 +1,29 @@
+
+class dijkstara{
+public : 
+vector<vii> adj(sz);
+int so,d,so1;
+vector<int> dis(sz,-1);
+vector<int> p(sz);
+void dijkstra (){  //minuimum path at w graph one to one || many to many or ... at any graph (co or not )
+    set<pii>  s;
+    s.insert({0,so});
+    //s.insert({0,so1});   many to many minimum path what ever th source to all nodes
+//    dis[so]=0;   dont make this line
+    while(!s.empty()){
+       pii p =*(s.begin());
+       int node=p.second , c_node=p.first;
+       s.erase(p);
+      if(dis[node]!=-1) continue;
+      dis[node]=c_node;
+    //  p[node]= p.second .second; construct path but u need pr (w, (node , parent of node)) 
+      for (auto &child : adj[node]){
+          if (dis[child.first]==-1){
+              s.insert({child.second+c_node,child.first});
+          }
+      }
+
+    }
+}
+
+};

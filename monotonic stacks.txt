@@ -1,0 +1,10 @@
+  while(!st.empty())st.pop();
+          for (int i  = 0; i < n  ;++i)
+          {
+               while(!st.empty() and st.top().f<a[i])
+               {
+                   n_a[st.top().s]=i;
+                   st.pop();
+               }
+               st.push({a[i],i});
+          }
