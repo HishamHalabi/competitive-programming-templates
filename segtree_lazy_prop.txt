@@ -1,0 +1,105 @@
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+using namespace std;
+
+#define N 300007
+//#define mod 1000
+#define int long long
+#define F first
+#define S second
+
+
+#define item long long
+
+struct segtree{
+
+    vector <int> op;
+    vector<item> operations;
+
+    int sz =1;
+    segtree(int n){
+        while(sz<n)sz*=2;
+        operations.resize(2*sz);
+        op.resize(2*sz);
+    }
+
+    int operation (int a ,  int b){
+        return  max(a,b) ;
+    }
+    void apply(item& a , item  b){
+          a=operation (a, b);
+    }
+    void propagate(int x  , int lx  ,int rx){
+          if (rx-lx==1 || !op[x])
+            return  ;
+          op[2*x+1] =op[2*x+2] =1;
+          apply(operations[2*x+1], operations[x]) ;
+          apply(operations[2*x+2] ,operations[x]) ;
+
+          //clear op of node
+          op[x]=0;
+          operations[x] = 0 ;
+
+    }
+    void change  (int  l , int r,int v , int x, int lx ,  int rx){
+        propagate(x , lx, rx);
+        if (rx<=l || lx>=r)
+            return ;
+        if (lx >=l and rx<=r){
+                op[x]  = 1;
+                apply( operations[x] , v);
+                return ;
+        }
+        int md  = (lx+rx)/2;
+        change( l, r, v, 2*x+1 ,lx, md);
+        change (l, r, v ,  2*x+2 , md, rx);
+    }
+    void change (int  l ,int r ,int v){
+        change(l,r,v,0 ,0,sz);
+    }
+    item calc(int  i, int x , int lx , int rx ){
+          propagate(x,lx,rx);
+          if (rx-lx==1){
+            return  operations[x] ;
+          }
+          int md   = (lx+rx)/2;
+          if (i<md)
+            return calc(i,  2*x+1 , lx,md);
+          else
+            return calc(i, 2*x+2 , md, rx) ;
+    }
+    int calc(int i  ){
+        return calc(i , 0 , 0,sz);
+    }
+
+
+};
+signed main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);      cout.tie(0);
+
+    int n, m ;
+    cin>>n>>m;
+    segtree sg(n+1);
+
+    for (int  i = 0 ; i  <m; ++i){
+        int q;
+        cin>>q;
+        if(q==2){
+            int idx;
+            cin>>idx;
+            cout<<sg.calc(idx)<<"\n";
+            continue;
+        }
+        int   l , r, v;
+        cin>>l>>r>>v;
+        sg.change( l, r, v);
+
+    }
+
+}
