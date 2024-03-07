@@ -1,0 +1,25 @@
+seg tree : 
+
+typ1 : standard : 
+ 
+   i   ,  get  i
+
+////////////////////////////
+typ2 :  update  l >>>  r   : get i 
+ 
+so u need propogate  
+
+//////////////////////////////
+update l ...  r  :  get l ... r
+
+typ3 : fst : 
+   make each nd have according to it's down changes and whn get seg 
+   make sure you have ubove changes or like this 
+
+typ4 : 
+
+      2nd  technice   lazy propogation  
+       this type is same to typ3 but he shifts the changes to down and update nds sch that each nd still hold it's right value 
+       and when you calc same you shift and update when y reach any x u arn't intersted who is above you (you cleared it XD)
+      so it's better than 3 
+    
