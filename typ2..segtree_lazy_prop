@@ -37,9 +37,11 @@ struct segtree{
     void propagate(int x  , int lx  ,int rx){
           if (rx-lx==1 || !op[x])
             return  ;
-          op[2*x+1] =op[2*x+2] =1;
+         
           apply(operations[2*x+1], operations[x]) ;
           apply(operations[2*x+2] ,operations[x]) ;
+          op[2*x+1] =op[2*x+2] =1;
+
 
           //clear op of node
           op[x]=0;
@@ -51,8 +53,9 @@ struct segtree{
         if (rx<=l || lx>=r)
             return ;
         if (lx >=l and rx<=r){
-                op[x]  = 1;
+               
                 apply( operations[x] , v);
+               op[x]  = 1;
                 return ;
         }
         int md  = (lx+rx)/2;
