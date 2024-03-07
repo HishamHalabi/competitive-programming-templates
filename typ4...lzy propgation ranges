@@ -14,137 +14,134 @@ using namespace std;
 #define S second
 
 
-
-
 struct item  {
-    pair <int, int> a = {0, 1} , b{0 , 1} ,c = {0 , 1};
-    int  sum  = 0 ;
-
+     int v  ;
+     int op  ;      // 0 assign        |  1 add
 };
 
 struct segtree{
 
+
+
     vector <int> op;
-    vector <int>  operations;
-    vector <item> val  ;
-    item Neutral_element ;
+    vector <item>  operations;
+    vector <int > val ;
+
     int sz =1;
     segtree(int n){         //empty
         while(sz<n)sz*=2;
         operations.resize(2*sz);
         op.resize(2*sz);
         val.resize(2*sz) ;
-        Neutral_element.a = {-1e15 ,-1e15};
-        Neutral_element.b = {-1e15 ,-1e15};
-        Neutral_element.c = {-1e15 ,-1e15};
-        Neutral_element.sum = -1e18;
 
     }
-    item merge(item m1 , item m2 , int len){
-        pair< int , int>  a1 =m1.a, a2 = m2.a , b1 = m1.b  ,
-                    c1 =m1.c  , b2 =m2.b  , c2 =m2.c ;
-        int &sum1 =  m1.sum , &sum2 =  m2.sum;
+    int Neutral_elemnt  = 0 ;
 
-        item res  ;
-        res.a = max( make_pair(a1.F ,  a1.S ) , make_pair( sum1+a2.F , len +a2.S)) ;
-        res.b = max(make_pair(b2.F ,b2.S ) ,make_pair(sum2 +b1.F ,b1.S+len) );
-        res.c = max(res.a,res.b);
-        res.c = max(res.c , max(c1,c2));
-        res.c= max(res.c , make_pair(b1.F +a2.F ,b1.S +a2.S));
-        res.sum = sum1 +sum2;
+    int merge(int m1  ,  int m2 , int len){
+          return  m1 + m2 ;
+    }
+
+    item operation (item a ,  item b , int x){
+        if (!op[x])
+            return  b ;
+
+        int v1  = a.v , v2 = b.v , op1 = a.op , op2 =b.op;
+        item res ;
+        if (op2){
+                if (op1){
+                    res.op =1;
+                    res.v = v1  +v2;
+                }
+                else {
+                    res.op =  0 ;
+                    res.v =  v1+v2;
+                }
+        }
+        else{
+                res.op = 0 ;
+                res.v =   v2 ;
+        }
         return res;
     }
 
-    int operation (int a ,  int b){
-        return b ;
+    void apply(item& a ,item b , int x){
+          a=operation (a, b ,x);
     }
-    void apply(int& a , int  b){
-          a=operation (a, b);
-    }
-    void update(item & cur  , int v , int len){
-        cur.sum = len*v;
-        if (v>=0){
-            cur.a = {len*v , len};
-            cur.b = cur.a;
-            cur.c =  cur.a;
-        }
-        else {
-            cur.a=  {0, 0};
-            cur.b = {0 ,0};
-            cur.c=  {0 ,0} ;
-        }
+    void update(int & cur  , item oper , int len){
+          if (oper.op)
+               cur+=len*oper.v;
+          else
+               cur =len*oper.v;
     }
     void reset (int x , int  lx ,int rx){
          if (rx- lx==1){
+             val[x] = 0 ;
              if (op[x])
-            update(val[x ]  , operations[x] , 1) ;
+              update(val[x] , operations[x]  , 1) ;
          }
          else {
             val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2 ) ;
             if (op[x])
-              update(val[x] , operations[x] , rx-lx ) ; //how val[x] wiil change ac to it's op
+              update(val[x] , operations[x] , rx-lx ) ;
          }
     }
     void propagate(int x  , int lx  ,int rx){
           if (rx-lx==1 || !op[x])
             return  ;
 
+          apply(operations[2*x+1], operations[x] , 2*x+1) ;
+          apply(operations[2*x+2] ,operations[x] ,2*x+2) ;
           op[2*x+1] =op[2*x+2] =1;
-          apply(operations[2*x+1], operations[x]) ;
-          apply(operations[2*x+2] ,operations[x]) ;
-           ////////////////////////////////////////////
-           //clear op of node
+          //clear op of node
           op[x]=0;
-          operations[x] = 0 ;         //دي ملهاش لازمه لا ن op[x]مفهماني
-
-          ////////////////////this part for solving problems of type 4/////////////////////////////
-          int md  = (lx+rx)/2 ;
+          //////////////////////
+          int md  =  (lx+rx)/2;
           reset(2*x+1 , lx, md); //عشان هي جالها تغيرات والمفروض انها مرتبطه بتفيراتها وال تحتيها
           reset(2*x+2, md, rx); //same
           reset(x , lx, rx);    //same
           ////////////////////////////////////////////////////
 
-       
+
 
     }
 
 
-    void change  (int  l , int r,int v , int x, int lx ,  int rx){
+    void change  (int  l , int r,item oper , int x, int lx ,  int rx){
         propagate(x , lx, rx);
         if (rx<=l || lx>=r)
             return  ;
         if (lx >=l and rx<=r){
-                op[x]  = 1;
-                apply( operations[x] , v);
-                reset(x, lx, rx) ; 
+                 apply( operations[x] , oper ,x);
+                 op[x]  = 1;
+                 reset(x  , lx , rx) ;
                 return ;
         }
         int md  = (lx+rx)/2;
-        change( l, r, v, 2*x+1 ,lx, md);
-        change (l, r, v ,  2*x+2 , md, rx);
+        change( l, r, oper, 2*x+1 ,lx, md);
+        change (l, r, oper ,  2*x+2 , md, rx);
 
         val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2) ;
     }
-    void change (int  l ,int r ,int v){
-        change(l,r,v,0 ,0,sz);
+    void change (int  l ,int r ,item oper){
+        change(l,r , oper,0 ,0,sz);
     }
-    item calc(int  l , int r , int x , int lx , int rx ){
-          propagate(x,lx,rx);
-          if (lx>=r ||rx<=l)
-            return Neutral_element;
+    int calc( int  l,  int r , int x , int lx , int rx ){
 
-          if (lx>=l and rx<=r){
-                return val[x] ;
+          propagate(x,lx,rx);
+          if (lx>=r  ||rx<=l)
+            return  Neutral_elemnt ;
+          if (lx>= l  and rx<=r){
+            return val[x] ;
           }
 
-          int md   = (lx+rx)/2;
-          item res1= calc(l ,r  , 2*x+1  , lx, md);
-          item res2= calc(l , r, 2*x+2 , md , rx);
-          return merge(res1 , res2 , (rx-lx)/2)  ;
+          int md  =  (lx+rx)/2;
+          int res1 = calc( l , r , 2*x+1 ,lx ,md);
+          int res2 = calc( l , r, 2*x+2 , md, rx) ;
+          return merge(res1 , res2 , rx-lx);
+
     }
-    int calc(int l , int r  ){
-       item res=  calc(l , r,  0 , 0,sz);
-       return res.c.F;
+    int calc(int l,  int r){
+       return calc(l , r , 0, 0, sz) ;
     }
 
 
@@ -159,13 +156,36 @@ signed main() {
     cin>>n>>m;
     segtree sg(n+1);
 
-    for (int  i = 0 ; i  <m; ++i){
-        int  l  ,r   ,v;
-        cin>>l>>r>>v;
-        sg.change(l ,r , v) ;
-        cout<<sg.calc(0 , n)<<"\n";
+
+
+
+    for (int  i = 0 ; i  <m; ++i)
+    {
+         int q;
+         cin>>q;
+         if (q==1)
+         {
+                int l  , r ,v ;
+                cin>>l>>r>>v;
+                sg.change( l ,r ,{v, 0});
+
+         }
+         else if (q==2)
+         {
+                int l  , r ,v ;
+                cin>>l>>r>>v;
+                sg.change( l ,r ,{v, 1});
+
+         }
+         else
+         {
+             int l , r;
+             cin>>l>>r;
+             cout<<sg.calc( l ,r) <<"\n";
+         }
 
     }
+
 
 
 }
