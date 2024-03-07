@@ -76,6 +76,7 @@ struct segtree{
     }
     void reset (int x , int  lx ,int rx){
          if (rx- lx==1){
+             if (op[x])
             update(val[x ]  , operations[x] , 1) ;
          }
          else {
@@ -91,6 +92,10 @@ struct segtree{
           op[2*x+1] =op[2*x+2] =1;
           apply(operations[2*x+1], operations[x]) ;
           apply(operations[2*x+2] ,operations[x]) ;
+           ////////////////////////////////////////////
+           //clear op of node
+          op[x]=0;
+          operations[x] = 0 ;         //دي ملهاش لازمه لا ن op[x]مفهماني
 
           ////////////////////this part for solving problems of type 4/////////////////////////////
           int md  = (lx+rx)/2 ;
@@ -99,9 +104,7 @@ struct segtree{
           reset(x , lx, rx);    //same
           ////////////////////////////////////////////////////
 
-          //clear op of node
-          op[x]=0;
-          operations[x] = 0 ;
+       
 
     }
 
@@ -113,7 +116,7 @@ struct segtree{
         if (lx >=l and rx<=r){
                 op[x]  = 1;
                 apply( operations[x] , v);
-                update(val[x] , v , rx- lx) ; // how val[x]  will change
+                reset(x, lx, rx) ; 
                 return ;
         }
         int md  = (lx+rx)/2;
