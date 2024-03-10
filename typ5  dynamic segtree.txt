@@ -1,0 +1,240 @@
+
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u 3 ;
+  دايما احلم ربنا المنان
+
+
+#includebitsstdc++.h
+using namespace std;
+
+#define N 300007
+#define mod 1000
+#define int long long
+#define F first
+#define S second
+
+
+#define item pair int , int 
+
+struct node{
+         description
+        bool op = 0 ;
+        int  oper =0 ;
+       item val ;
+
+
+        int lx , rx ;            when you crate the first root nd don't remeber to give it lx ,rx but other ndes take thier lft from  up
+
+
+        intialize nd
+        node (){
+                intialize
+                oper = 0;
+                val =  {0,0} ;
+        }
+
+        node   lft  =NULL  , rght=NULL  ;   create my two childs
+        void extend()          طلعي تشيلدس
+        {
+
+
+                   int md  = (lx+rx)2;
+
+                   if (lft==NULL){
+                           lft  =  new node;
+                           lft -lx =lx;
+                            lft-rx =md;
+                   }
+
+                   if (rght==NULL){
+                        rght = new node;
+                        rght-lx= md;
+                        rght-rx = rx;
+
+                   }
+
+        }
+
+};
+node root ;
+struct segtree{
+
+
+
+
+    int sz =1, org ;
+    segtree(int n){
+        while(szn)sz=2;
+        root=new node;
+        root-lx = 0 ;
+        root-rx=sz;
+        root-op = 0;
+
+    }
+    int Neutral_elemnt  = 0 ;
+
+    item merge(item m1  ,  item m2 ){
+          return {max(m1.F,m2.F+m1.S ) , m1.S+m2.S};
+
+    }
+
+    int  operation (int  a ,  int b , bool op){
+        if (!op)return b;
+       return b;
+    }
+
+    void apply(int& a ,int  b , bool op){
+          a=operation (a, b ,op);
+    }
+    void update(node nd){
+          if (nd-oper0)
+               nd-val.F=nd-oper;
+          else
+               nd-val.F =(nd-rx  -nd-lx) nd-oper;;
+          nd-val.S =  (nd-rx  -nd-lx) nd-oper;
+    }
+    void reset (node  nd){
+
+
+         int lx = nd-lx , rx =nd-rx;
+
+         if (rx- lx==1){
+                nd-val = make_pair(0, 0);
+             if (nd-op)
+              update(nd) ;
+         }
+         else {
+            if (nd-lft==NULL  and nd-rght==NULL){
+               nd-val = {0 , 0} ;
+            }
+            else if (nd-rght==NULL){
+                nd-val=nd-lft-val;
+            }
+            else if (nd-lft==NULL){
+                 nd-val=nd-rght-val;
+            }
+            else{
+            nd-val= merge(nd-lft-val , nd-rght-val) ;
+            }
+            if (nd-op)
+              update(nd) ;
+         }
+    }
+    void propagate(node nd){
+           nd-extend();
+          if (nd-rx-nd-lx==1  !nd-op)
+            return  ;
+
+          apply(nd-lft-oper ,nd-oper ,  nd-lft-op) ;
+          apply(nd-rght-oper ,nd-oper ,  nd-rght-op) ;
+
+
+          nd-lft-op =nd-rght-op=1;
+
+          clear op of node
+          nd-op= 0 ;
+          nd-val = {0,0} ;
+          
+
+          reset(nd-lft); عشان هي جالها تغيرات والمفروض انها مرتبطه بتفيراتها وال تحتيها
+          reset(nd-rght); same
+          reset(nd);    same
+          
+
+
+    }
+
+    void change  (int  l , int r,int oper , node nd){
+
+         x lx rx val[x]  oper[x]  op[x]   =  nd    2x+1  nd-lft
+
+        if (nd-rx =l  nd-lx =r)
+            return  ;
+
+        propagate(nd);
+
+        if (nd-lx =l and nd-rx=r){
+                 apply( nd-oper, oper , nd-op );
+                 nd-op = 1;
+                 reset(nd) ;
+                 return ;
+        }
+
+
+        change( l, r, oper, nd-lft);
+        change (l, r, oper , nd-rght);
+        nd-val= merge(nd-lft-val , nd-rght-val) ;
+    }
+    void change (int  l ,int r ,int oper){
+        change(l,r , oper,root);
+    }
+
+    int cnt_rails(int   h   , int en ,    node nd){
+
+        nd-extend();
+        propagate(nd);
+
+
+        int lx  =nd-lx, rx =nd-rx;
+        if (rx-lx==1){
+            return (((nd-val.F+en)=h)10);
+        }
+        int sh =en  ;
+
+        if (nd-val.F+en=h){
+            return rx-lx;
+        }
+        sh+=nd-lft-val.S;
+
+        int md  =  (lx+rx)2 ,len  =(nd-rx-nd-lx)2;
+
+        if (nd-lft-val.F+en=h)
+          return  len +cnt_rails(h , sh  , nd-rght);
+
+        return cnt_rails(h ,en ,nd-lft);
+    }
+    int cnt_rails(int h){
+
+               return cnt_rails(h,0 , root);
+    }
+
+
+
+};
+signed main() {
+    ios_basesync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+
+    int n ;
+    cinn;
+
+    segtree sg(n);
+
+
+
+
+    char q;
+    cinq;
+
+   sg.change(n , n+1,1e15);
+
+    while(q!='E'){
+
+        if (q=='Q'){
+            int h;
+            cinh;
+             coutsg.cnt_rails(h)n;
+        }
+        else {
+            int l  , r , d;
+            cinlrd;
+            int st= d ;
+            l--;
+            sg.change( l ,r , d);
+        }
+        cinq;
+    }
+
+}
