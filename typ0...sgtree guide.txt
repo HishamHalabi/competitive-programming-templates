@@ -22,4 +22,7 @@ typ4 :
        this type is same to typ3 but he shifts the changes to down and update nds sch that each nd still hold it's right value 
        and when you calc same you shift and update when y reach any x u arn't intersted who is above you (you cleared it XD)
       so it's better than 3 
+
+type5 : 
+it's not type but when your N is to large u need to store what u just visit 
     
