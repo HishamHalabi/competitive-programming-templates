@@ -27,3 +27,31 @@ void dijkstra (){  //minuimum path at w graph one to one || many to many or ... 
 }
 
 };
+/////////////////////////////////faster imle i don't know it good////////////////////////
+
+make sure that dis intialized to largest possible val
+ vector<int> dist(1 << n, INT_MAX);
+        dist[s] = 0;
+        set<pair<int, int>> q = {{0, s}};
+        while (!q.empty()) {
+            auto [d, v] = *q.begin();
+            q.erase(q.begin());
+            for (int i = 0; i < m; i++) {
+                int to = v & edges[i].first.first;
+                to |= edges[i].first.second;
+                if (dist[to] > d + edges[i].second) {
+                    q.erase({dist[to], to});
+                    dist[to] = d + edges[i].second;
+                    q.insert({dist[to], to});
+                }
+            }
+        }
+        if (dist[0] == INT_MAX) dist[0] = -1;
+        cout << dist[0] << '\n';
+
+
+
+
+
+
+/////////////////////
