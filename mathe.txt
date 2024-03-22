@@ -8,7 +8,10 @@ int mul_l_r_mod(int l , int r){
 int div (int a  ,  int  b , int m){
                   return  (a%m * ModInverse(b,m)%m) % m;
 }
-int sub(int a , int b , int m){
+int sub(int a , int b , int m){ // a ,b maybe negative
+               return (a%m +b%m + m) % m;
+}
+int sub(int a , int b , int m){ // a ,b maybe negative
                return (a%m - b%m + m) % m;
 }
 
