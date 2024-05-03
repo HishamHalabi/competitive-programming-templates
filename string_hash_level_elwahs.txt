@@ -81,9 +81,9 @@ void pre_hash()            // n * o(power) n * log
 
          //   l ....r    << p2 p1 p0
 
-            p1=  random_int(33,300);
-            p2=random_int(26, 33);
-            p3=random_int(250,400);
+            p1=  random_int(1,1e8);
+            p2=random_int(1, 1e8);
+            p3=random_int(1,1e8);
 
             mod  = random_int(1e9,2e9);
 
