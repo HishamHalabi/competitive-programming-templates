@@ -1,11 +1,6 @@
-string x;
-int n ;
+int m=1e9+7,mod=m , p1 =257 ,  p2= 256 ;
  
-const int N  =  3e6 ;
- 
-int m=1e9+7,mod=m , p1 =257 ,  p2= 257  ,p3 = 31;   // 19 , 17 , 256,  257  , 31
- 
-pair< int, pair<int,int> >  Hash[N] , re_Hash[N] ;
+pair< int, int>  Hash[N] , re_Hash[N] ;
 int power(int a, int b){
         if(b < 0) return 1;
          int res = 1;
@@ -17,7 +12,7 @@ int power(int a, int b){
          return res;
 }
  
-void pre_hash()            // n * o(power) n * log 
+void pre_hash()
 {                 //zero based
  
          //   l ....r    << p2 p1 p0
@@ -25,55 +20,53 @@ void pre_hash()            // n * o(power) n * log
           int  mod= m ;
  
           for (int i = 0 ; i <n ; ++i){
-                   Hash[i].F=Hash[i].S.F = Hash[i].S.S =(x[i]-'a') ;
+                   Hash[i].F=Hash[i].S =  (x[i]-'a') ;
                    if (i){
-                          Hash[i].F   +=   Hash[i-1].F*p1 ;
-                          Hash[i].S.F +=  Hash[i-1].S.F*p2 ;
-                          Hash[i].S.S +=  Hash[i-1].S.S*p3 ;
+                          Hash[i].F +=  Hash[i-1].F*p1 ;
+                          Hash[i].S +=  Hash[i-1].S*p2 ;
                    }
                    Hash[i].F%=mod;
-                   Hash[i].S.F%=mod;
-                   Hash[i].S.S%=mod;
+                   Hash[i].S%=mod;
           }
           for (int i = n-1 ; i >=0 ; --i){       //  p0 p1 p2
-                   re_Hash[i].F =re_Hash[i].S.F = re_Hash[i].S.S = x[i]-'a';
+                   re_Hash[i].F =re_Hash[i].S =  x[i]-'a';
                    if (i!=n-1){
                            re_Hash[i].F +=re_Hash[i+1].F * p1;
-                           re_Hash[i].S.F +=re_Hash[i+1].S.F *p2;
-                           re_Hash[i].S.S +=re_Hash[i+1].S.S *p3;
+                           re_Hash[i].S +=re_Hash[i+1].S *p2;
  
                    }
                    re_Hash[i].F %=mod;
-                   re_Hash[i].S.F%=mod;
-                   re_Hash[i].S.S%=mod;
+                   re_Hash[i].S%=mod;
           }
 }
 int sub(int a , int b   ){
        return (a%mod - b%mod + mod)%mod;
 }
-pair<int ,pair<int,int> >  calc_hash(int l  , int r) //zero based
+pair<int ,int>  calc_hash(int l  , int r) //zero based
 {
-           pair<int ,pair<int,int> >  ans  = Hash[r];
+           pair<int ,int>  ans  = Hash[r];
  
            if (l){
               ans.F = sub(ans.F ,  Hash[l-1].F*power(p1 , r-l+1)) ;
-              ans.S.F = sub(ans.S.F ,  Hash[l-1].S.F*power(p2 , r-l+1)) ;
-              ans.S.S = sub(ans.S.S ,  Hash[l-1].S.S*power(p3 , r-l+1)) ;
+              ans.S = sub(ans.S ,  Hash[l-1].S*power(p2 , r-l+1)) ;
            }
               return ans;
 }
-pair<int,pair<int,int> >  calc_reversed_hash(int l , int r){
+pair<int,int>  calc_reversed_hash(int l , int r){
  
-          pair<int,pair<int,int> >  ans  = re_Hash[l] ;
+          pair<int,int>  ans  = re_Hash[l] ;
  
           if (r!=n-1){
                   ans.F=sub(ans.F , re_Hash[r+1].F*power(p1 , r-l+1)) ;
-                  ans.S.F=sub(ans.S.F , re_Hash[r+1].S.F*power(p2 , r-l+1)) ;
-                  ans.S.S=sub(ans.S.S , re_Hash[r+1].S.S*power(p3 , r-l+1)) ;
+                  ans.S=sub(ans.S , re_Hash[r+1].S*power(p2 , r-l+1)) ;
           }
           return ans ;
  
 }
-bool palindrome (int  l , int r){
-        return calc_hash(l,r) ==  calc_reversed_hash(l,r)  ;
+bool palindrom (int  l , int r){
+ 
+ 
+              return calc_hash(l,r) ==  calc_reversed_hash(l,r)  ;
+ 
 }
+ 
