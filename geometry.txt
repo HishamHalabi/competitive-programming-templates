@@ -1,0 +1,63 @@
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+using namespace std;
+
+
+#define int long long
+
+#define ld  long double
+
+ld pi  =  3.1415926535  ;
+ld sector_area1(ld  r, ld angle){   // angle in degrees
+   return (angle /  360.0) *  pi * r * r;
+}
+
+
+
+ld sector_area2(ld r, ld angle){   // angle in arch
+
+         return .5 * angle  *  r *r;
+}
+
+ld circle_area(ld r){
+      return pi  *r*r;
+}
+
+
+ld Sin(ld a){       //same for cos ,  ...etc
+            double radian =a * pi/180;
+            return sin(radian);
+}
+
+ld triangle_area(ld r  , ld a){
+    //cout<<Sin(a)<<" "<<a<<"\n";
+        return .50 *r * r* Sin(a);
+}
+
+
+void lets_start_as_we_never_failed(){
+
+               ld  r , a;
+               cin>>r>>a;
+
+
+
+               cout<<fixed<<setprecision(7)<<sector_area1(r , a)- triangle_area(r , a)<<"\n";
+}
+// 2 :14
+signed main() {
+
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);      cout.tie(0);
+
+    int tc=1;
+    cin>>tc;
+    while(tc--)
+        lets_start_as_we_never_failed();
+
+}
