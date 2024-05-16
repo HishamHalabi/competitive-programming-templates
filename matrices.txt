@@ -1,0 +1,66 @@
+
+#define int long long
+
+const int mod =  1e9+7;
+
+int add(int a , int b){
+
+       return (a+b+mod)%mod;
+}
+
+int mul(int a , int b){
+
+     return ((a%mod + mod)  * (b%mod + mod))%mod ;
+}
+
+
+typedef vector<vector<int> >  matrix;
+
+matrix operator * (const matrix &lhs ,  const matrix & rhs){
+
+      int n = lhs.size();
+    int m = rhs[0].size();
+    int s1 = lhs[0].size(), s2 = rhs.size();
+    assert(s1 == s2);
+    matrix ret(n, vector<int>(m));
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < s1; ++j)
+            for (int k = 0; k < m; ++k)
+                ret[i][k] = add(ret[i][k], mul(lhs[i][j], rhs[j][k]));
+    return ret;
+
+}
+
+matrix Identity(int n){      //A*Idn = Idn  A
+       matrix Idn (n ,  vector<int> (n));
+
+       for (int i = 0 ; i < n ; ++i){
+                Idn[i][i]=1;
+       }
+
+
+       return Idn ;
+
+}
+/*
+         matrix mul is asscioative
+         A *   B * C =  (A * B) * C
+         
+         
+*/
+matrix m_power(matrix m , int p){
+
+       matrix  res  =  Identity (m.size());
+
+       while(p){
+            if  (p&1)
+                   res =  res  * m ;
+
+            m = m * m ;
+            p/=2;
+       }
+
+       return res;
+
+
+}
