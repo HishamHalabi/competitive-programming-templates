@@ -4,11 +4,11 @@ void Set(int &mask , int bitIndx , int val){
   else
     mask = mask | (1LL << bitIndx);
 }
-int flib(int mask , int bitIndx ){ // 1 >> 0  , 0>>1
+void flib(int &mask , int bitIndx ){ // 1 >> 0  , 0>>1
        mask = mask ^ (1LL << bitIndx);
 }
 int Bit(int mask , int bitIndx){ //val[bit]
-   return  (mask >> bitIndx) & 1 == 1;
+   return  (mask >> bitIndx) & 1LL == 1LL;
 }
 int invert(int mask){
     return ~mask;
