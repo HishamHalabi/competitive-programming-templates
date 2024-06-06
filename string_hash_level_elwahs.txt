@@ -97,7 +97,7 @@ void pre_hash()            // n * o(power) n * log
          // int  mod= m ;
 
           for (int i = 0 ; i <n ; ++i){
-                   Hash[i].F=Hash[i].S.F = Hash[i].S.S =(x[i]-'a') ;
+                   Hash[i].F=Hash[i].S.F = Hash[i].S.S =(x[i]-'0') ;
                    if (i){
                           Hash[i].F   +=   Hash[i-1].F*p1 ;
                           Hash[i].S.F +=  Hash[i-1].S.F*p2 ;
@@ -108,7 +108,7 @@ void pre_hash()            // n * o(power) n * log
                    Hash[i].S.S%=mod;
           }
           for (int i = n-1 ; i >=0 ; --i){       //  p0 p1 p2
-                   re_Hash[i].F =re_Hash[i].S.F = re_Hash[i].S.S = x[i]-'a';
+                   re_Hash[i].F =re_Hash[i].S.F = re_Hash[i].S.S = x[i]-'0';
                    if (i!=n-1){
                            re_Hash[i].F +=re_Hash[i+1].F * p1;
                            re_Hash[i].S.F +=re_Hash[i+1].S.F *p2;
