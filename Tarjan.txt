@@ -141,18 +141,18 @@ vector<vector<int> >  compgraph(){         // consider each comp as a node and c
         vector<vector<int>  >   res(n+2);
         for (int   u =1  ; u <=n ; ++u)
                    for (auto &v : g[u]){
-                              u =  head[u]   ,  v=head[v] ;
+                              int U =  head[u]   ,  V=head[v] ;     // if u use u this affects loop
 
-                              if(u!=v){
-                                      res[u].push_back(v);
-
-                               }
+                              if(U!=V){
+                                      res[U].push_back(V);
+                             }
 
                     }
 
          return res;
 
 }
+
 
 
 void lets_start_as_we_never_failed() {
