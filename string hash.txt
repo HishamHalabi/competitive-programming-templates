@@ -1,26 +1,95 @@
-/*
-   صل عل محمد
-   if (u == Abdel-Aziz Mostafa )   love u <3 ;
-  دايما احلم ربنا المنان
 
-*/
-#include<bits/stdc++.h>
-using namespace std  ;
+int m=1e9+7,mod=m , p1 =19 ,  p2= 17;
 
-#define int long long           //TLE
-#define F first
-#define S second
 
+int sub(int a , int b   ){
+       return (a%mod - b%mod + mod)%mod;
+}
+
+vector<int > pw1(N) , pw2(N) ;
 #define ll int
+
 ll random_int(ll l , ll r){
     static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
     return uniform_int_distribution<ll>(l,r)(rng);
 }
+bool prime(int n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+
+    // Check if n is divisible by 2 or 3
+    if (n % 2 == 0 || n % 3 == 0) return false;
+
+    // Iterate through all numbers from 5 to the square root of n
+    for (int i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0)
+            return false;
+    }
+
+    return true;
+}
+void init_hash(){
+            p1=  random_int(1,1e8);
+            p2=random_int(1, 1e8);
+
+            mod  = random_int(1e9,2e9);
+
+            int cnt = 3000 ;
+            while(!prime(mod) and cnt--){
+                    mod=random_int(1e9 , 2e9);
+            }
+            if (!prime(mod))
+                     mod=  1e9+7;
+
+}
+struct Hashing {
+        vector<pair<int,int> >Hash , re_Hash ;
 
 
-int m=1e9+7,mod=m , p1 =257 ,  p2= 256 ;
+        int n  ;
+        Hashing(string x){                 //zero based
 
-int power(int a, int b){
+         //   l ....r    << p2 p1 p0
+
+                n=x.size();
+                Hash.resize(2*n);
+                re_Hash.resize(2*n) ;
+
+
+                pw1[0]   = 1;
+                pw2[0]  = 1;
+
+                for (int i = 0 ; i <n ; ++i){
+                        Hash[i].F=Hash[i].S =  (x[i]-'0') ;
+                        if (i){
+                                Hash[i].F +=  Hash[i-1].F*p1 ;
+                                Hash[i].S +=  Hash[i-1].S*p2 ;
+                                 pw1[i] = (pw1[i-1] * p1)%mod ;
+                                 pw2[i] =  (pw2[i-1]  * p2)%mod;
+                        }
+                        Hash[i].F%=mod;
+                        Hash[i].S%=mod;
+
+
+
+                }
+
+                pw1[n]  = (pw1[n-1] *p1)%mod;
+                pw2[n]  = (pw2[n-1] *p2)%mod;
+
+                for (int i = n-1 ; i >=0 ; --i){       //  p0 p1 p2
+                        re_Hash[i].F =re_Hash[i].S =  x[i]-'0';
+                        if (i!=n-1){
+                                re_Hash[i].F +=re_Hash[i+1].F * p1;
+                                re_Hash[i].S +=re_Hash[i+1].S *p2;
+
+                        }
+                        re_Hash[i].F %=mod;
+                        re_Hash[i].S%=mod;
+                }
+        }
+
+        int power(int a, int b){
         if(b < 0) return 1;
          int res = 1;
          while(b){
@@ -31,140 +100,34 @@ int power(int a, int b){
          return res;
 }
 
-int sub(int a , int b   ){
-       return (a%mod - b%mod + mod)%mod;
-}
 
-struct Hashing {
-vector<pair<int,int> >Hash , re_Hash ;
-
-   int n  ;
-Hashing(string x)
-{                 //zero based
-
-         //   l ....r    << p2 p1 p0
-
-        n=x.size();
-         Hash.resize(2*n);
-         re_Hash.resize(2*n) ;
-
-
-
-
-
-
-          for (int i = 0 ; i <n ; ++i){
-                   Hash[i].F=Hash[i].S =  (x[i]-'0') ;
-                   if (i){
-                          Hash[i].F +=  Hash[i-1].F*p1 ;
-                          Hash[i].S +=  Hash[i-1].S*p2 ;
-                   }
-                   Hash[i].F%=mod;
-                   Hash[i].S%=mod;
-          }
-          for (int i = n-1 ; i >=0 ; --i){       //  p0 p1 p2
-                   re_Hash[i].F =re_Hash[i].S =  x[i]-'0';
-                   if (i!=n-1){
-                           re_Hash[i].F +=re_Hash[i+1].F * p1;
-                           re_Hash[i].S +=re_Hash[i+1].S *p2;
-
-                   }
-                   re_Hash[i].F %=mod;
-                   re_Hash[i].S%=mod;
-          }
-}
-
-pair<int ,int>  calc_hash(int l  , int r) //zero based
+        pair<int ,int>  calc_hash(int l  , int r) //zero based
 {
-           pair<int ,int>  ans  = Hash[r];
+                pair<int ,int>  ans  = Hash[r];
 
-           if (l){
-              ans.F = sub(ans.F ,  Hash[l-1].F*power(p1 , r-l+1)) ;
-              ans.S = sub(ans.S ,  Hash[l-1].S*power(p2 , r-l+1)) ;
-           }
-              return ans;
+                if (l){
+                    ans.F = sub(ans.F ,  Hash[l-1].F*power(p1 , r-l+1)) ;
+                    ans.S = sub(ans.S ,  Hash[l-1].S*power(p2 , r-l+1)) ;;
+                }
+                    return ans;
 }
-pair<int,int>  calc_reversed_hash(int l , int r){
+        pair<int,int>  calc_reversed_hash(int l , int r){
 
-          pair<int,int>  ans  = re_Hash[l] ;
+                pair<int,int>  ans  = re_Hash[l] ;
 
-          if (r!=n-1){
-                  ans.F=sub(ans.F , re_Hash[r+1].F*power(p1 , r-l+1)) ;
-                  ans.S=sub(ans.S , re_Hash[r+1].S*power(p2 , r-l+1)) ;
-          }
-          return ans ;
+                if (r!=n-1){
+                        ans.F=sub(ans.F , re_Hash[r+1].F*power(p1 , r-l+1)) ;
+                        ans.S=sub(ans.S , re_Hash[r+1].S*power(p2 , r-l+1)) ;
+                }
+                return ans ;
 
-}
-bool palindrom (int  l , int r){
+        }
+        bool palindrom (int  l , int r){
+                    return calc_hash(l,r) ==  calc_reversed_hash(l,r)  ;
 
-
-              return calc_hash(l,r) ==  calc_reversed_hash(l,r)  ;
-
-}
+        }
 
 };
 
 
 
-
-
-void lets_start_as_we_never_failed() {
-
-
-            int n  , k ;
-            cin>>n >>k;
-
-
-               p1= 17;
-               p2=19;
-
-
-
-            string x;
-            cin>>x;
-
-            string t1 = "";
-            string t2="";
-
-            bool f= 0 ;
-
-
-            for (int i =  0 ; i<n ; i+=k){
-                     for (int  j = 0 ;j <k ; ++j){
-                               if (f)
-                                    t1+='0' , t2+='1';
-                               else
-                                    t1+='1' , t2+='0';
-                     }
-                     f=!f;
-            }
-
-
-            //cout<<t2<<"\n";
-
-
-
-            Hashing h(x)  , h1(t1), h2(t2)  ;
-
-
-            for (int i  = 1 ; i  <n ; ++i){
-                     int  len  =  n-i ;;
-
-                     if ((h.calc_hash(i,n-1) == h1.calc_hash(0,len-1)  and h.calc_reversed_hash(0 , i-1) ==h1.calc_hash(len , n-1))
-                        || (h.calc_hash(i,n-1) == h2.calc_hash(0,len-1)  and h.calc_reversed_hash(0 , i-1) ==h2.calc_hash(len , n-1)))
-                        return void (cout<<i<<"\n");
-            }
-            cout<<-1<<"\n";
-}
-// 2 :14
-signed main() {
-
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);      cout.tie(0);
-
-    int tc=1;
-    cin>>tc;
-    while(tc--)
-        lets_start_as_we_never_failed();
-
-}
