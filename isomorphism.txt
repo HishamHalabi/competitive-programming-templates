@@ -1,0 +1,166 @@
+/*
+   صل عل محمد
+
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+using namespace std  ;
+
+#define int long long //TLE
+#define F first
+#define S second
+
+const int N   =  3e5+7 ;
+//////////////////////
+
+without hash o (n*n*log)
+
+//////////////////////////////////////////////////////////
+vector <vector<int >  >g(N) , par(N) ;
+/*
+
+    each tree has only one or two centres we can get from the diameter
+    for each center we have one calonical form such that we can compare two trees  by it and
+    also u can compare if asked by difrrent nodes
+
+*/
+
+string get_rep(vector<string > & cur) {
+
+        sort(cur.begin() ,  cur.end()) ;
+        string ret ="(";
+        for (auto &str  : cur) {
+                  ret+=str ;
+        }
+        ret+=")";
+        return ret ;
+
+}
+
+/*
+1
+7
+1 2
+1 5
+5 6
+5 7
+2 3
+2 4
+7 2
+7 5
+2 1
+2 4
+5 6
+5 7*/
+string canonical_form (int nd  , int par) {
+
+
+          vector <string>  cur ;
+          for (auto &ch  : g[nd]) {
+                  if (ch==par)
+                        continue   ;
+
+                  cur.push_back(canonical_form(ch , nd)) ;
+          }
+
+
+
+
+          string res= get_rep(cur) ;
+          return  res;
+}
+
+
+
+string canonical_form_2(int n ) {
+
+           int deg[n+1]  =  {0};
+           queue   <int >  leafes   ;
+           vector<vector<string > >  canonical(n+1 )  ;
+
+           for (int  i  =1; i<=n ; ++i) {
+                     deg[i]  =  g[i].size();
+                     if (deg[i]   <=1){
+                                leafes.push(i) ;
+                    }
+                    canonical[i].push_back(get_rep(canonical[i]));
+           }
+
+
+
+           int rem = n;
+           while(rem>2){
+               int sz=  leafes.size();
+               while(sz--)  {
+                        int nd  =  leafes.front();
+                        leafes.pop();
+
+                        for (auto &par  : g[nd]) {
+                                --deg[par] ;
+                                string  re=   get_rep(canonical[nd])  ;
+                                canonical[par].push_back(re)  ;
+                                if (deg[par] ==1){ //it is the only par else they are childs
+                                        leafes.push(par)  ;
+                                }
+                        }
+                        --rem ;
+               }
+           }
+
+           int center1  =  leafes.front() ;    leafes.pop();
+           int center2  =  leafes.empty() ? -1  : leafes.front();
+
+
+           string s1= get_rep(canonical[center1]) ;
+
+           if (center2==-1)
+                return s1;
+
+           string s2 =  get_rep(canonical[center2])  ;
+
+           canonical[center1].push_back(s2);
+           canonical[center2].push_back(s1)  ;
+
+           return min(get_rep(canonical[center1] ) , get_rep(canonical[center2])) ;
+
+}
+void lets_start_as_we_never_failed()   {
+
+          int  n ;
+          cin >> n ;
+
+          for (int  i   = 1 ; i < n ;  ++i){
+                    int u  , v;
+                    cin >> u >>v;
+                    g[u] .push_back(v) ;
+                    g[v].push_back(u) ;
+          }
+
+          cout<<canonical_form_2(n)<<"\n";
+          cout<<canonical_form(1,-1)<<"\n";
+
+
+
+
+
+
+
+}
+
+
+signed main() {
+
+    ios_base::sync_with_stdio(0);
+   cin.tie(0);      cout.tie(0);
+
+
+    int tc =1;
+
+    while(tc--)
+        lets_start_as_we_never_failed();
+
+}
+/////////////////////////////////////////////
+with hash 
+////////////////////////////////////////////////////////////
