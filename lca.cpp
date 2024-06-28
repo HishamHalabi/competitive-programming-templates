@@ -57,7 +57,7 @@ int lca (int  u ,  int v) {  // O(logn)
 
 void pre_lca(int root) {
          for (int  i = 1 ; i  <=n ; ++i){
-                    for (int k =    0 ; k<=17 ; ++k )
+                    for (int k =    0 ; k<=mxlog ; ++k )
                              dp[i][k] = -1  ;
          }
 
