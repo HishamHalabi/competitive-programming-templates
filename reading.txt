@@ -1,0 +1,13 @@
+          //////////reading line of unkonw n of int
+
+   string s;
+      
+           getline (cin   , s)
+            
+            ss >> u;   : extrarct first int from line
+            while (ss >> v)
+            {
+                     // extarct  :  v represent int from the line
+            }
+        }
+//////////////////////////////////////
