@@ -78,6 +78,9 @@ void lets_start_as_we_never_failed()   {
 
           cin >> n ;
 
+          for (int  i = 0 ; i <= n ; ++i)
+                   g[i].clear() ; 
+
 
           for (int  i   = 0 ; i+1 < n ;  ++i){
                     int u  , v;
@@ -196,6 +199,9 @@ void lets_start_as_we_never_failed()   {
 
 
           cin >> n ;
+
+        for (int  i = 0 ; i <= n ; ++i)
+                   g[i].clear() ; 
 
 
           for (int  u   = 0 ; u < n ;  ++u){
