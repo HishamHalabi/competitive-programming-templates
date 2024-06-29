@@ -172,6 +172,7 @@ void pre   ( int root =1){
                  if (i  >=2)
                         lg[i]  =lg[i/2]+1;
        }
+       lg[len]  = lg[len/2]+1   ; 
        lg[2*n]   =  lg[n]+1;
 
        for (int k =1 ;  k  <=  mxlog ;  ++k){
