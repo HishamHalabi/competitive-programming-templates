@@ -1,4 +1,4 @@
-    bitset<N> sums(1);
+    bitset<N> sums(1);          //  N up to 2e8
     for (auto sz: cur)
         sums |= sums << sz;
  
