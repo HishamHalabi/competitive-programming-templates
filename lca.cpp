@@ -184,7 +184,7 @@ void pre   ( int root =1){
 }
 int lca  (int u  ,int v)  {
      int L  = fst[u]  , R=  fst[v]   ;
-     if ( L <R)
+     if ( L > R)
           swap( L ,R)  ;
      return mi_query(L , R)  ;
 
