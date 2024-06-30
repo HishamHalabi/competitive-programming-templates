@@ -73,6 +73,25 @@ void pre_lca(int root) {
 
 
 }
+
+int dis ( int u  , int v)  {
+           int  l  =  lca(u , v)  ;
+           return depth[u]  +  depth[v]  -  2*depth[l] ;
+}
+
+
+int kth_par(int  u  , int x)  {
+       for (int k =  mxlog ;   k>= 0 ; k--){
+                if ((1<<k)  <=x ){
+                          u =  dp[u][k] ;
+                          x-=1<<k  ;
+                          if ( u== -1)
+                                return  u ;
+                }
+        }
+        return  u  ;
+}
+
 void lets_start_as_we_never_failed()   {
 
 
