@@ -236,7 +236,7 @@ void lets_start_as_we_never_failed()   {
                     }
           }
 
-          pre(0);
+          pre(1);
 
 
           int q;
