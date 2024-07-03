@@ -47,7 +47,119 @@ void eraseElement(ordered_set<T>& os, const T& element) {
     os.erase(element);
 }
 
-
-
+/////////////////////////////////////////////////
+multi
 ////////////////////////////
+
+#include <iostream>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace __gnu_pbds;
+using namespace std;
+
+// Template definition for multiset
+template<typename T>
+using ordered_multiset = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+// Function to insert elements into the ordered multiset
+template<typename T>
+void insertElement(ordered_multiset<T>& oms, const T& element) {
+    oms.insert(element);
+}
+
+// Function to print elements of the ordered multiset
+template<typename T>
+void printOrderedMultiset(const ordered_multiset<T>& oms) {
+    for (const auto& elem : oms) {
+        cout << elem << " ";
+    }
+    cout << endl;
+}
+
+// Function to find the k-th largest element (0-based index)
+template<typename T>
+void findKthLargest(const ordered_multiset<T>& oms, int k) {
+    auto it = oms.find_by_order(k);
+    if (it != oms.end()) {
+        cout << "The " << k + 1 << "-th largest element is: " << *it << endl;
+    } else {
+        cout << "Element not found." << endl;
+    }
+}
+
+// Function to get the order of a specific element
+template<typename T>
+void getOrderOfElement(const ordered_multiset<T>& oms, const T& element) {
+    int order = oms.order_of_key(element);
+    cout << "The order of element " << element << " is: " << order << endl;
+}
+
+// Function to erase an element from the ordered multiset
+template<typename T>
+void eraseElement(ordered_multiset<T>& oms, const T& element) {
+    auto it = oms.lower_bound(element);
+    if (it != oms.end() && *it == element) {
+        oms.erase(it);
+    }
+}
+
+int main() {
+    // Create an ordered_multiset of pairs (int, int)
+    ordered_multiset<pair<int, int>> oms;
+
+    // Insert elements into the ordered multiset
+    insertElement(oms, {1, 1});
+    insertElement(oms, {2, 2});
+    insertElement(oms, {3, 3});
+    insertElement(oms, {2, 2}); // duplicate element
+
+    // Print elements of the ordered multiset
+    cout << "Elements in the ordered multiset of pairs:" << endl;
+    for (const auto& elem : oms) {
+        cout << "(" << elem.first << ", " << elem.second << ") ";
+    }
+    cout << endl;
+
+    // Find the k-th largest element (0-based index)
+    findKthLargest(oms, 1);
+
+    // Get the order of a specific element
+    getOrderOfElement(oms, {2, 2});
+
+    // Erase an element
+    eraseElement(oms, {2, 2});
+    cout << "After erasing one instance of (2, 2):" << endl;
+    for (const auto& elem : oms) {
+        cout << "(" << elem.first << ", " << elem.second << ") ";
+    }
+    cout << endl;
+
+    // Create an ordered_multiset of integers
+    ordered_multiset<int> intSet;
+
+    // Insert elements into the ordered multiset of integers
+    insertElement(intSet, 10);
+    insertElement(intSet, 20);
+    insertElement(intSet, 30);
+    insertElement(intSet, 20); // duplicate element
+
+    // Print elements of the ordered multiset of integers
+    cout << "Elements in the ordered multiset of integers:" << endl;
+    printOrderedMultiset(intSet);
+
+    // Find the k-th largest element (0-based index) in the set of integers
+    findKthLargest(intSet, 1);
+
+    // Get the order of a specific element in the set of integers
+    getOrderOfElement(intSet, 20);
+
+    // Erase an element from the set of integers
+    eraseElement(intSet, 20);
+    cout << "After erasing one instance of 20:" << endl;
+    printOrderedMultiset(intSet);
+
+    return 0;
+}
+
  auto it =  s.lower_bound({c,numeric_limits<int>::min()});
