@@ -1,10 +1,51 @@
+
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
+
 using namespace __gnu_pbds;
+
+// Template definition for ordered_set
 template<typename T>
 using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
 
-//s .order_of_key(x)  n of elemnts less than x
+// Function to insert elements into the ordered set
+template<typename T>
+void insertElement(ordered_set<T>& os, const T& element) {
+    os.insert(element);
+}
+
+// Function to print elements of the ordered set
+template<typename T>
+void printOrderedSet(const ordered_set<T>& os) {
+    for (const auto& elem : os) {
+        cout << elem << " ";
+    }
+    cout << endl;
+}
+
+// Function to find the k-th largest element (0-based index)
+template<typename T>
+void findKthLargest(const ordered_set<T>& os, int k) {
+    auto it = os.find_by_order(k);
+    if (it != os.end()) {
+        cout << "The " << k + 1 << "-th largest element is: " << *it << endl;
+    } else {
+        cout << "Element not found." << endl;
+    }
+}
+
+// Function to get the order of a specific element
+template<typename T>
+void getOrderOfElement(const ordered_set<T>& os, const T& element) {
+    int order = os.order_of_key(element);
+    cout << "The order of element " << element << " is: " << order << endl;
+}
+
+// Function to erase an element from the ordered set
+template<typename T>
+void eraseElement(ordered_set<T>& os, const T& element) {
+    os.erase(element);
+}
 
 
 
