@@ -1,17 +1,3 @@
-/*
-   صل عل محمد
-   if (u == Abdel-Aziz Mostafa )   love u <3 ;
-  دايما احلم ربنا المنان
-
-*/
-#include<bits/stdc++.h>
-using namespace std;
-
-
-#define int long long
-
-#define ld  long double
-
 ld pi  =  3.1415926535  ;
 ld sector_area1(ld  r, ld angle){   // angle in degrees
    return (angle /  360.0) *  pi * r * r;
@@ -28,9 +14,14 @@ ld circle_area(ld r){
       return pi  *r*r;
 }
 
-
-ld Sin(ld a){       //same for cos ,  ...etc
-            double radian =a * pi/180;
+ld to_radian (ld a) {
+            return a * pi/180; ;
+}
+ld to_degree (ld rad) {
+                 return (rad*180)/pi ;
+}
+ld Sin(ld a){       //same for cos ,  ...etc       ||  asin acos atan
+            double radian =to_radian(a) ;
             return sin(radian);
 }
 
@@ -39,17 +30,11 @@ ld triangle_area(ld r  , ld a){
         return .50 *r * r* Sin(a);
 }
 
+ld angle  (ld a , ld b ,ld c)  {       //  angle is centre of a   ,  b
+          ld sum  =  a+b+c ;
+          return to_degree(acos((c*c  -a*a-b*b)/2.0)) ;
 
-void lets_start_as_we_never_failed(){
-
-               ld  r , a;
-               cin>>r>>a;
-
-
-
-               cout<<fixed<<setprecision(7)<<sector_area1(r , a)- triangle_area(r , a)<<"\n";
 }
-// 2 :14
 signed main() {
 
     ios_base::sync_with_stdio(0);
