@@ -1,4 +1,30 @@
+  priority_queue<pair < int, pair<int , int  > >  ,vector < pair < int, pair<int , int  > > >  , greater<> > pq;
+    pq.push({ 0 ,{so , k}})  ;
 
+
+    while(!pq.empty()) {
+        int nd = (pq.top()).S.F ;
+        long long  w =  (pq.top()).F ;
+        int  rest_k =  (pq.top()).S.S ;
+        pq.pop();
+
+
+        if (calc[nd][rest_k ]  !=inf){
+
+            continue ;
+        }
+
+
+        calc[nd][rest_k]  = w ;
+
+        for (auto &[ch ,we]  : g[nd]) {
+            if (w + (we*1LL) <  calc[ch][rest_k])
+                 pq.push({w+  get_cost(we ,  0),{ ch , rest_k}}) ;
+            if (rest_k and w + (we*1LL)*1LL<calc[ch][rest_k-1])
+                 pq.push({w+  get_cost(we , 1)*1LL,{ch  , rest_k-1}}) ;
+        }
+    }
+///////////////////////////////////////////////
 class dijkstara{
 public : 
 vector<vii> adj(sz);
