@@ -1,3 +1,17 @@
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+using namespace std;
+
+
+#define int long long
+
+#define ld  long double
+
 ld pi  =  3.1415926535  ;
 ld sector_area1(ld  r, ld angle){   // angle in degrees
    return (angle /  360.0) *  pi * r * r;
@@ -14,14 +28,9 @@ ld circle_area(ld r){
       return pi  *r*r;
 }
 
-ld to_radian (ld a) {
-            return a * pi/180; ;
-}
-ld to_degree (ld rad) {
-                 return (rad*180)/pi ;
-}
-ld Sin(ld a){       //same for cos ,  ...etc       ||  asin acos atan
-            double radian =to_radian(a) ;
+
+ld Sin(ld a){       //same for cos ,  ...etc
+            double radian =a * pi/180;
             return sin(radian);
 }
 
@@ -30,11 +39,17 @@ ld triangle_area(ld r  , ld a){
         return .50 *r * r* Sin(a);
 }
 
-ld angle  (ld a , ld b ,ld c)  {       //  angle is centre of a   ,  b
-          ld sum  =  a+b+c ;
-          return to_degree(acos((c*c  -a*a-b*b)/2.0)) ;
 
+void lets_start_as_we_never_failed(){
+
+               ld  r , a;
+               cin>>r>>a;
+
+
+
+               cout<<fixed<<setprecision(7)<<sector_area1(r , a)- triangle_area(r , a)<<"\n";
 }
+// 2 :14
 signed main() {
 
     ios_base::sync_with_stdio(0);
@@ -46,3 +61,249 @@ signed main() {
         lets_start_as_we_never_failed();
 
 }
+
+
+///////////////////////////////////////////////////////////////
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+#include <cstdlib>
+
+// 1. Distance Between Two Points
+int distanceSquared(int x1, int y1, int x2, int y2) {
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    return dx * dx + dy * dy; // Returns the squared distance to avoid floating-point operations
+}
+
+// 2. Check if a Point is Inside a Circle
+bool isPointInCircle(int px, int py, int cx, int cy, int r) {
+    return distanceSquared(px, py, cx, cy) <= r * r;
+}
+
+// 3. Check if Two Circles Intersect
+bool doCirclesIntersect(int x1, int y1, int r1, int x2, int y2, int r2) {
+    int distSq = distanceSquared(x1, y1, x2, y2);
+    int rSum = r1 + r2;
+    int rDiff = std::abs(r1 - r2);
+    return (distSq <= rSum * rSum && distSq >= rDiff * rDiff);
+}
+
+// 4. Check if a Line Intersects a Circle
+bool isTangent(int cx, int cy, int r, int x1, int y1, int x2, int y2) {
+    int A = y2 - y1;
+    int B = x1 - x2;
+    int C = x2 * y1 - x1 * y2;
+    int num = std::abs(A * cx + B * cy + C);
+    int denom = A * A + B * B; // Avoid sqrt for integer comparison
+    return num * num <= r * r * denom; // Compare squared distance with squared radius
+}
+
+// 5. Check if a Point is On a Line Segment
+bool isPointOnSegment(int px, int py, int x1, int y1, int x2, int y2) {
+    if (px < std::min(x1, x2) || px > std::max(x1, x2) || py < std::min(y1, y2) || py > std::max(y1, y2))
+        return false;
+    int crossProduct = (py - y1) * (x2 - x1) - (px - x1) * (y2 - y1);
+    return crossProduct == 0;
+}
+
+// 6. Check if Two Line Segments Intersect
+bool doSegmentsIntersect(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+    auto orientation = [](int x1, int y1, int x2, int y2, int x3, int y3) {
+        int val = (y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2);
+        if (val == 0) return 0; // collinear
+        return (val > 0) ? 1 : 2; // clock or counterclock wise
+    };
+    int o1 = orientation(x1, y1, x2, y2, x3, y3);
+    int o2 = orientation(x1, y1, x2, y2, x4, y4);
+    int o3 = orientation(x3, y3, x4, y4, x1, y1);
+    int o4 = orientation(x3, y3, x4, y4, x2, y2);
+    if (o1 != o2 && o3 != o4) return true; // General case
+    return false; // Special cases (collinear) are not checked here for simplicity
+}
+
+// 7. Area of a Triangle Given Vertices
+double triangleArea(int x1, int y1, int x2, int y2, int x3, int y3) {
+    return std::abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0;
+}
+
+// 8. Check if a Point is Inside a Triangle
+bool isPointInTriangle(int px, int py, int x1, int y1, int x2, int y2, int x3, int y3) {
+    double A = triangleArea(x1, y1, x2, y2, x3, y3);
+    double A1 = triangleArea(px, py, x2, y2, x3, y3);
+    double A2 = triangleArea(x1, y1, px, py, x3, y3);
+    double A3 = triangleArea(x1, y1, x2, y2, px, py);
+    return (A == A1 + A2 + A3);
+}
+
+// 9. Calculate the Circumference of a Circle
+double circleCircumference(int r) {
+    return 2 * M_PI * r;
+}
+
+// 10. Calculate the Area of a Circle
+double circleArea(int r) {
+    return M_PI * r * r;
+}
+
+// 11. Check if a Point is Inside a Rectangle
+bool isPointInRectangle(int px, int py, int rx1, int ry1, int rx2, int ry2) {
+    return (px >= rx1 && px <= rx2 && py >= ry1 && py <= ry2);
+}
+
+// 12. Check if Two Rectangles Overlap
+bool doRectanglesOverlap(int rx1, int ry1, int rx2, int ry2, int rx3, int ry3, int rx4, int ry4) {
+    return !(rx2 < rx3 || rx4 < rx1 || ry2 < ry3 || ry4 < ry1);
+}
+
+// 13. Calculate the Area of a Rectangle
+int rectangleArea(int rx1, int ry1, int rx2, int ry2) {
+    return std::abs(rx2 - rx1) * std::abs(ry2 - ry1);
+}
+
+// 14. Calculate the Perimeter of a Rectangle
+int rectanglePerimeter(int rx1, int ry1, int rx2, int ry2) {
+    return 2 * (std::abs(rx2 - rx1) + std::abs(ry2 - ry1));
+}
+
+// 15. Calculate the Area of a Parallelogram Given Vertices
+double parallelogramArea(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+    return std::abs((x1 * y2 + x2 * y3 + x3 * y4 + x4 * y1) - (y1 * x2 + y2 * x3 + y3 * x4 + y4 * x1)) / 2.0;
+}
+
+// Main function for testing
+int main() {
+    // Example Usage:
+    
+    // 1. Check if two circles intersect
+    int x1 = 0, y1 = 0, r1 = 5;
+    int x2 = 8, y2 = 0, r2 = 5;
+    if (doCirclesIntersect(x1, y1, r1, x2, y2, r2)) {
+        std::cout << "The circles intersect." << std::endl;
+    } else {
+        std::cout << "The circles do not intersect." << std::endl;
+    }
+
+    // 2. Check if a line intersects a circle
+    int cx = 0, cy = 0, cr = 5;
+    int lx1 = 0, ly1 = 6;
+    int lx2 = 8, ly2 = 6;
+    if (isTangent(cx, cy, cr, lx1, ly1, lx2, ly2)) {
+        std::cout << "The line intersects the circle." << std::endl;
+    } else {
+        std::cout << "The line does not intersect the circle." << std::endl;
+    }
+
+    // 3. Check if a point is inside a triangle
+    int px = 1, py = 1
+}
+
+
+
+
+// 9. Calculate the Convex Hull of a Set of Points 
+
+/*
+         the min shape that contains all points
+
+*/ 
+struct Point {
+    int x, y;
+    bool operator<(const Point& p) const {
+        return x < p.x || (x == p.x && y < p.y);
+    }
+};
+
+std::vector<Point> convexHull(std::vector<Point>& points) {
+    if (points.size() < 3) return points;
+
+    std::sort(points.begin(), points.end());
+    std::vector<Point> hull;
+
+    auto cross = [](Point O, Point A, Point B) {
+        return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+    };
+
+    for (int i = 0; i < points.size(); ++i) {
+        while (hull.size() >= 2 && cross(hull[hull.size() - 2], hull[hull.size() - 1], points[i]) <= 0) {
+            hull.pop_back();
+        }
+        hull.push_back(points[i]);
+    }
+
+    for (int i = points.size() - 2, t = hull.size() + 1; i >= 0; --i) {
+        while (hull.size() >= t && cross(hull[hull.size() - 2], hull[hull.size() - 1], points[i]) <= 0) {
+            hull.pop_back();
+        }
+        hull.push_back(points[i]);
+    }
+
+    hull.pop_back();
+    return hull;
+}
+
+// 10. Calculate the Area of a Polygon
+double polygonArea(const std::vector<Point>& points) {
+    int n = points.size();
+    double area = 0;
+    for (int i = 0; i < n; ++i) {
+        int j = (i + 1) % n;
+        area += points[i].x * points[j].y;
+        area -= points[i].y * points[j].x;
+    }
+    return std::abs(area) / 2.0;
+}
+
+int main() {
+    // Example Usage:
+    
+    // Check if two circles intersect
+    int x1 = 0, y1 = 0, r1 = 5;
+    int x2 = 8, y2 = 0, r2 = 5;
+    if (doCirclesIntersect(x1, y1, r1, x2, y2, r2)) {
+        std::cout << "The circles intersect." << std::endl;
+    } else {
+        std::cout << "The circles do not intersect." << std::endl;
+    }
+
+    // Check if a line intersects a circle
+    int cx = 0, cy = 0, cr = 5;
+    int lx1 = 0, ly1 = 6;
+    int lx2 = 8, ly2 = 6;
+    if (isTangent(cx, cy, cr, lx1, ly1, lx2, ly2)) {
+        std::cout << "The line intersects the circle." << std::endl;
+    } else {
+        std::cout << "The line does not intersect the circle." << std::endl;
+    }
+
+    // Check if a point is inside a triangle
+    int px = 1, py = 1;
+    int tx1 = 0, ty1 = 0;
+    int tx2 = 5, ty2 = 0;
+    int tx3 = 0, ty3 = 5;
+    if (isPointInTriangle(px, py, tx1, ty1, tx2, ty2, tx3, ty3)) {
+        std::cout << "The point is inside the triangle." << std::endl;
+    } else {
+        std::cout << "The point is not inside the triangle." << std::endl;
+    }
+
+    // Example points for convex hull and polygon area
+    std::vector<Point> points = {{0, 0}, {4, 0}, {4, 3}, {0, 3}, {2, 2}};
+    
+    // Calculate convex hull
+    std::vector<Point> hull = convexHull(points);
+    std::cout << "Convex Hull Points: ";
+    for (const auto& p : hull) {
+        std::cout << "(" << p.x << "," << p.y << ") ";
+    }
+    std::cout << std::endl;
+    
+    // Calculate area of a polygon
+    double area = polygonArea(hull);
+    std::cout << "Area of Polygon: " << area << std::endl;
+
+    return 0;
+}
+
+
+
