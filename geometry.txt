@@ -4,6 +4,17 @@
   دايما احلم ربنا المنان
 
 */
+
+
+/*
+       double erors   handling : 
+             double   , int  >> long double   
+
+              const double EPS  = 1e-9; 
+              while comparing  , etc  >> consider an eror 1e-9 means the two operands equla
+
+
+*/
 #include<bits/stdc++.h>
 using namespace std;
 
@@ -305,5 +316,85 @@ int main() {
     return 0;
 }
 
+const double EPS  = 1e-9;
+#define double long double
+ 
+struct Point {
+    double x;
+    double y;
+};
+ 
 
+// Function to calculate intersection points between two circles
+vector<Point> circleIntersection(double x1, double y1, double r1, double x2, double y2, double r2) {
+    vector<Point> intersections;
+ 
+    double d = sqrt(distanceSquared(x1, y1, x2, y2));
+ 
+    // No intersection or infinite intersections (circles are the same)
+    if (d > r1 + r2 || d < fabs(r1 - r2)) {
+        return intersections;
+    }
+ 
+    double a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+    double h = sqrt(r1 * r1 - a * a);
+ 
+    double x0 = x1 + a * (x2 - x1) / d;
+    double y0 = y1 + a * (y2 - y1) / d;
+ 
+    intersections.push_back({x0 + h * (y2 - y1) / d, y0 - h * (x2 - x1) / d});
+    intersections.push_back({x0 - h * (y2 - y1) / d, y0 + h * (x2 - x1) / d});
+ 
+    return intersections;
+}
+ 
+ 
+// Function to find intersection points between a circle and a line
+std::vector<Point> circleLineIntersection(double cx, double cy, double r, double m, double b) {
+    std::vector<Point> intersections;
+ 
+    // Line equation: y = mx + b
+    // Circle equation: (x - cx)^2 + (y - cy)^2 = r^2
+ 
+    double A = 1 + m * m;
+    double B = 2 * (m * (b - cy) - cx);
+    double C = cx * cx + (b - cy) * (b - cy) - r * r;
+ 
+    double discriminant = B * B - 4 * A * C;
+ 
+    if (discriminant < 0) {
+        return intersections;  // no intersection
+    }
+ 
+    double x1 = (-B + std::sqrt(discriminant)) / (2 * A);
+    double y1 = m * x1 + b;
+    intersections.push_back({x1, y1});
+ 
+    if (discriminant > 0) {
+        double x2 = (-B - std::sqrt(discriminant)) / (2 * A);
+        double y2 = m * x2 + b;
+        intersections.push_back({x2, y2});
+    }
+ 
+    return intersections;
+}
+
+// Function to find intersection point between two lines
+std::vector<Point> lineLineIntersection(double m1, double b1, double m2, double b2) {
+    std::vector<Point> intersections;
+ 
+    // Line equations: y = m1 * x + b1 and y = m2 * x + b2
+ 
+    if (m1 == m2) {
+        return intersections;  // parallel lines, no intersection
+    }
+ 
+    double x = (b2 - b1) / (m1 - m2);
+    double y = m1 * x + b1;
+ 
+    intersections.push_back({x, y});
+ 
+    return intersections;
+}
+ 
 
