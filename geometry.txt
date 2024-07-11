@@ -396,5 +396,49 @@ std::vector<Point> lineLineIntersection(double m1, double b1, double m2, double 
  
     return intersections;
 }
+ /* 
+               Ahmed know them 
+*/
+struct Point {
+    double x, y;
+};
  
+bool arePointsOnSameCircle(Point p1, Point p2, Point p3) {
+    return (p1.y - p2.y) * (p1.x - p3.x) == (p1.y - p3.y) * (p1.x - p2.x);
+ 
+}
+ 
+pair<Point, double> findCircle(Point p1, Point p2, Point p3) {
+    double x1 = p1.x, y1 = p1.y;
+    double x2 = p2.x, y2 = p2.y;
+    double x3 = p3.x, y3 = p3.y;
+ 
+    double a = x1 * (y2 - y3) - y1 * (x2 - x3) + (x2 * y3 - x3 * y2);
+    double b = (x1 * x1 + y1 * y1) * (y3 - y2) + (x2 * x2 + y2 * y2) * (y1 - y3) + (x3 * x3 + y3 * y3) * (y2 - y1);
+    double c = (x1 * x1 + y1 * y1) * (x2 - x3) + (x2 * x2 + y2 * y2) * (x3 - x1) + (x3 * x3 + y3 * y3) * (x1 - x2);
+    double d = (x1 * x1 + y1 * y1) * (x3 * y2 - x2 * y3) + (x2 * x2 + y2 * y2) * (x1 * y3 - x3 * y1) +
+               (x3 * x3 + y3 * y3) * (x2 * y1 - x1 * y2);
+ 
+    double xc = -b / (2 * a);
+    double yc = -c / (2 * a);
+    double radius = std::sqrt((b * b + c * c - 4 * a * d) / (4 * a * a));
+ 
+    Point center = {xc, yc};
+    return {center, radius};
+}
+
+Point findCircle(Point p1, Point p2) {
+    double x1 = p1.x, y1 = p1.y;
+    double x2 = p2.x, y2 = p2.y;
+ 
+    // Calculate the midpoint
+    double cx = (x1 + x2) / 2;
+    double cy = (y1 + y2) / 2;
+ 
+    // Calculate the radius
+    double radius = std::sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) / 2;
+ 
+    Point center = {cx, cy};
+    return center;
+}
 
