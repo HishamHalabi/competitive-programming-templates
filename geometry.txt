@@ -72,6 +72,66 @@ signed main() {
         lets_start_as_we_never_failed();
 
 }
+///////////////////////////////////////////////////////
+solving system of linear equations
+
+const double EPS = 1e-9; // Small epsilon value for floating-point comparison
+
+// Function to perform Gaussian elimination to solve Ax = b
+// Returns the solution vector x
+vector<double> solveGaussian(vector<vector<double>>& A, vector<double>& b) {
+    int n = A.size();
+    for (int i = 0; i < n; ++i) {
+        // Partial pivoting for numerical stability
+        int pivot = i;
+        for (int j = i + 1; j < n; ++j) {
+            if (abs(A[j][i]) > abs(A[pivot][i]))
+                pivot = j;
+        }
+        swap(A[i], A[pivot]);
+        swap(b[i], b[pivot]);
+
+        // Eliminate column i
+        for (int j = i + 1; j < n; ++j) {
+            double factor = A[j][i] / A[i][i];
+            b[j] -= factor * b[i];
+            for (int k = i; k < n; ++k)
+                A[j][k] -= factor * A[i][k];
+        }
+    }
+
+    // Back substitution to find x
+    vector<double> x(n);
+    for (int i = n - 1; i >= 0; --i) {
+        x[i] = b[i];
+        for (int j = i + 1; j < n; ++j)
+            x[i] -= A[i][j] * x[j];
+        x[i] /= A[i][i];
+    }
+
+    return x;
+}
+
+// Example usage
+int main() {
+    // Example system of equations:
+    // 2x + y - z = 8
+    // -3x - y + 2z = -11
+    // -2x + y + 2z = -3
+
+    vector<vector<double>> A = {{2, 1, -1}, {-3, -1, 2}, {-2, 1, 2}};
+    vector<double> b = {8, -11, -3};
+
+    vector<double> x = solveGaussian(A, b);
+
+    cout << "Solution:\n";
+    for (int i = 0; i < x.size(); ++i) {
+        cout << "x[" << i << "] = " << x[i] << "\n";
+    }
+
+    return 0;
+}
+
 
 
 ///////////////////////////////////////////////////////////////
