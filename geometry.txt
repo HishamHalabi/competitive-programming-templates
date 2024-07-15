@@ -270,7 +270,21 @@ int main() {
 }
 
 
-
+//  check if point exist on polygon  on o(n^3)
+bool found  (Point p , vector < Point > poloygon ) {
+          for (int i =  0;  i  < poloygon.size() ; ++i){
+                   for (int j  = 0 ;  j < poloygon.size() ;++j){
+                            for (int z = 0  ; z<poloygon.size() ; ++z){
+                                      if (i == j ||  j ==  z ||  i==z)
+                                                    continue;
+                                      if (isPointInTriangle(p.x , p.y , poloygon[i].x , poloygon[i].y ,  poloygon[j].x ,
+                                                            poloygon[j].y  , poloygon[z].x , poloygon[z].y ))
+                                                return 1 ;
+                            }
+                   }
+          }
+          return  0 ;
+}
 
 // 9. Calculate the Convex Hull of a Set of Points 
 
@@ -278,6 +292,7 @@ int main() {
          the min shape that contains all points
 
 */ 
+
 struct Point {
     int x, y;
     bool operator<(const Point& p) const {
