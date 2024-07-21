@@ -24,6 +24,21 @@ using namespace std;
 #define ld  long double
 
 ld pi  =  3.1415926535  ;
+
+double angle_between_sides(double a, double b, double c) {
+    // Calculate the cosine of the angle using the Law of Cosines
+    double cos_theta = (a * a + b * b - c * c) / (2 * a * b);
+    
+    // Calculate the angle in radians
+    double theta_radians = acos(cos_theta);
+    
+    // Convert the angle to degrees
+    double theta_degrees = theta_radians * (180.0 / M_PI);
+    
+    return theta_degrees;
+}
+
+
 ld sector_area1(ld  r, ld angle){   // angle in degrees
    return (angle /  360.0) *  pi * r * r;
 }
