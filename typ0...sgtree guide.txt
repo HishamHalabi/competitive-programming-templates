@@ -5,9 +5,10 @@ typ1 : standard :
    i   ,  get  i
 
 ////////////////////////////
-typ2 :  update  l >>>  r   : get i 
- 
-so u need propogate  
+update  l >>>  r   : get i   >> order don't >> mass operation  (just keep oper and when u go to ele take them or .. )
+order matter  : type 2 lazy propogate  to just propgate changes such :
+  each node hold val according to it and down changes 
+ new is up and when u are at node there's no changes above u
 
 //////////////////////////////
 update l ...  r  :  get l ... r
