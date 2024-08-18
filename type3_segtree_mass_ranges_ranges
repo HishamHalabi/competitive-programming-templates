@@ -1,0 +1,171 @@
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+using namespace std;
+
+#define N 300007
+//#define mod 1000
+#define int long long
+#define F first
+#define S second
+
+
+#define   item int
+
+bool prime  (int num ) {
+          if (num==2)
+              return 1;
+          if (num<=1  ||  num%2==0)
+                 return 0 ;
+
+          int s =sqrt(num) ;
+          for (int  i = 3; i <=s; i+=2) {
+                    if (num%i == 0 )
+                           return  0 ;
+          }
+
+          return 1;
+}
+
+
+struct segtree{
+
+
+
+    vector <int> op;
+    vector <item>  operations;
+    vector <int > val ;
+
+    int sz =1;
+    segtree(int n){         //empty
+        while(sz<n)sz*=2;
+        operations.resize(2*sz);
+        op.resize(2*sz);
+        val.resize(2*sz) ;
+
+    }
+    int Neutral_elemnt  = 0 ;
+
+    int merge(int m1  ,  int m2 , int len){
+        return  m1 + m2 ;
+    }
+
+    item operation (item a ,  item b , int x){
+        if (!op[x])
+            return  b ;
+
+           
+    }
+
+    void apply(item& a ,item b , int x){
+        a=operation (a, b ,x);
+    }
+    void update(int & cur  , item oper , int len){
+        if (oper.op)
+            cur+=len*oper.v;
+        else
+            cur =len*oper.v;
+    }
+    void reset (int x , int  lx ,int rx){
+        if (rx- lx==1){
+            val[x] = 0 ;
+            if (op[x])
+                update(val[x] , operations[x]  , 1) ;
+        }
+        else {
+            val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2 ) ;
+            if (op[x])
+                update(val[x] , operations[x] , rx-lx ) ;
+        }
+    }
+
+
+    void change  (int  l , int r,item oper , int x, int lx ,  int rx){
+
+        if (rx<=l || lx>=r)
+            return  ;
+        if (lx >=l and rx<=r){
+            apply( operations[x] , oper ,x);
+            op[x]  = 1;
+            reset(x  , lx , rx) ;
+            return ;
+        }
+        int md  = (lx+rx)/2;
+        change( l, r, oper, 2*x+1 ,lx, md);
+        change (l, r, oper ,  2*x+2 , md, rx);
+
+        reset(x ,lx, rx) ;
+    }
+    void change (int  l ,int r ,item oper){
+        change(l,r , oper,0 ,0,sz);
+    }
+    int calc( int  l,  int r , int x , int lx , int rx ){
+
+
+        if (lx>=r  ||rx<=l)
+            return  Neutral_elemnt ;
+        if (lx>= l  and rx<=r){
+            return val[x] ;
+        }
+
+        int md  =  (lx+rx)/2;
+        int res1 = calc( l , r , 2*x+1 ,lx ,md);
+        update(res1 , operations[x] , rx-lx);
+        int res2 = calc( l , r, 2*x+2 , md, rx) ;
+        update(res2 , operations[x] ,rx-lx);
+        return merge(res1 , res2 , rx-lx);
+
+    }
+    int calc(int l,  int r){
+        return calc(l , r , 0, 0, sz) ;
+    }
+
+
+};
+signed main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+
+    int n, m ;
+    cin>>n>>m;
+    segtree sg(n+1);
+
+
+
+
+    for (int  i = 0 ; i  <m; ++i)
+    {
+        int q;
+        cin>>q;
+        if (q==1)
+        {
+            int l  , r ,v ;
+            cin>>l>>r>>v;
+            sg.change( l ,r ,{v, 0});
+
+        }
+        else if (q==2)
+        {
+            int l  , r ,v ;
+            cin>>l>>r>>v;
+            sg.change( l ,r ,{v, 1});
+
+        }
+        else
+        {
+            int l , r;
+            cin>>l>>r;
+            cout<<sg.calc( l ,r) <<"\n";
+        }
+
+    }
+
+
+
+}
