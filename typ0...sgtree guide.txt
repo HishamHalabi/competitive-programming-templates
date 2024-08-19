@@ -1,3 +1,11 @@
+
+/*
+ len , rx - lx
+merge  , return   , l instead lx ...
+
+*/
+
+
 seg tree : 
 
 typ1 : standard : 
