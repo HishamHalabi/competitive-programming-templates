@@ -16,20 +16,6 @@ using namespace std;
 
 #define   item int
 
-bool prime  (int num ) {
-          if (num==2)
-              return 1;
-          if (num<=1  ||  num%2==0)
-                 return 0 ;
-
-          int s =sqrt(num) ;
-          for (int  i = 3; i <=s; i+=2) {
-                    if (num%i == 0 )
-                           return  0 ;
-          }
-
-          return 1;
-}
 
 
 struct segtree{
@@ -58,17 +44,14 @@ struct segtree{
         if (!op[x])
             return  b ;
 
-           
+        return a + b;
     }
 
     void apply(item& a ,item b , int x){
         a=operation (a, b ,x);
     }
     void update(int & cur  , item oper , int len){
-        if (oper.op)
-            cur+=len*oper.v;
-        else
-            cur =len*oper.v;
+              cur+=oper * len ;
     }
     void reset (int x , int  lx ,int rx){
         if (rx- lx==1){
@@ -109,15 +92,17 @@ struct segtree{
         if (lx>=r  ||rx<=l)
             return  Neutral_elemnt ;
         if (lx>= l  and rx<=r){
+           // cout<<val[x] <<"\n";
             return val[x] ;
         }
 
         int md  =  (lx+rx)/2;
-        int res1 = calc( l , r , 2*x+1 ,lx ,md);
-        update(res1 , operations[x] , rx-lx);
+        int res1= calc( l , r , 2*x+1 ,lx ,md);
         int res2 = calc( l , r, 2*x+2 , md, rx) ;
-        update(res2 , operations[x] ,rx-lx);
-        return merge(res1 , res2 , rx-lx);
+        int res  = merge(res1 , res2 , rx-lx) ;
+        update(res , operations[x] , r-l)  ; /* note we care about the actual seg */
+        return res ;
+
 
     }
     int calc(int l,  int r){
@@ -134,9 +119,14 @@ signed main() {
 
     int n, m ;
     cin>>n>>m;
-    segtree sg(n+1);
+    segtree sg(n+2);
 
+    for (int  i = 0 ; i  < n ; ++i) {
+              int v;
+              cin >> v;
 
+              sg.change(i ,  i +1 , v) ;
+    }
 
 
     for (int  i = 0 ; i  <m; ++i)
@@ -147,22 +137,19 @@ signed main() {
         {
             int l  , r ,v ;
             cin>>l>>r>>v;
-            sg.change( l ,r ,{v, 0});
+            l-- ;
+            sg.change( l ,r ,v);
 
         }
         else if (q==2)
         {
-            int l  , r ,v ;
-            cin>>l>>r>>v;
-            sg.change( l ,r ,{v, 1});
+               int  p ;
+               cin >> p ;
+
+               cout<<sg.calc (p-1 , p )<<"\n";
 
         }
-        else
-        {
-            int l , r;
-            cin>>l>>r;
-            cout<<sg.calc( l ,r) <<"\n";
-        }
+
 
     }
 
