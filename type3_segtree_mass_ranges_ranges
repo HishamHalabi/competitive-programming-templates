@@ -51,19 +51,18 @@ struct segtree{
         a=operation (a, b ,x);
     }
     void update(int & cur  , item oper , int len){
-              cur+=oper * len ;
+        cur+=oper * len ;
     }
     void reset (int x , int  lx ,int rx){
-        if (rx- lx==1){
-            val[x] = 0 ;
-            if (op[x])
-                update(val[x] , operations[x]  , 1) ;
-        }
-        else {
+         /**
+          *
+          *         here we don't have case that rx -lx ==1 so make sure if u add code 
+          *
+          */
             val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2 ) ;
             if (op[x])
                 update(val[x] , operations[x] , rx-lx ) ;
-        }
+
     }
 
 
@@ -72,9 +71,9 @@ struct segtree{
         if (rx<=l || lx>=r)
             return  ;
         if (lx >=l and rx<=r){
-            apply( operations[x] , oper ,x);
-            op[x]  = 1;
-            reset(x  , lx , rx) ;
+            update(val[x] , oper , rx-lx);
+            apply(operations[x] ,  oper , rx-lx);
+
             return ;
         }
         int md  = (lx+rx)/2;
@@ -92,7 +91,7 @@ struct segtree{
         if (lx>=r  ||rx<=l)
             return  Neutral_elemnt ;
         if (lx>= l  and rx<=r){
-           // cout<<val[x] <<"\n";
+            // cout<<val[x] <<"\n";
             return val[x] ;
         }
 
@@ -122,10 +121,10 @@ signed main() {
     segtree sg(n+2);
 
     for (int  i = 0 ; i  < n ; ++i) {
-              int v;
-              cin >> v;
+        int v;
+        cin >> v;
 
-              sg.change(i ,  i +1 , v) ;
+        sg.change(i ,  i +1 , v) ;
     }
 
 
@@ -143,10 +142,10 @@ signed main() {
         }
         else if (q==2)
         {
-               int  p ;
-               cin >> p ;
+            int  p ;
+            cin >> p ;
 
-               cout<<sg.calc (p-1 , p )<<"\n";
+            cout<<sg.calc (p-1 , p )<<"\n";
 
         }
 
