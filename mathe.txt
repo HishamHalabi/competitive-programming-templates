@@ -1,19 +1,24 @@
-struct math
-{
  
-int mul_l_r_mod(int l , int r){
-                   // sence mul[i] = (mul[i-1]  *cur[i])%mod
-                   return (l==0)?mul[r]:mul[r] * mod_inv(mul[l-1]);
-}
-int div (int a  ,  int  b , int m){
-                  return  (a%m * ModInverse(b,m)%m) % m;
-}
-int sum(int a , int b , int m){ // a ,b maybe negative
-               return (a%m +b%m + m) % m;
-}
-int sub(int a , int b , int m){ // a ,b maybe negative
-               return (a%m - b%m + m) % m;
-}
+long long intSqrt(long long n) {
+    if (n == 0 || n == 1) return n;  // Base cases
+
+    long long low = 0, high = n, ans = 0;
+
+    while (low <= high) {
+        long long mid = low + (high - low) / 2;
+
+        if (mid * mid == n) {
+            return mid;  // Exact square root
+        } else if (mid * mid < n) {
+            low = mid + 1;
+            ans = mid;  // Closest square root so far
+        } else {
+            high = mid - 1;
+        }
+    }
+    
+    return ans;  // Return the integer square root
+
 ///////////////////////////divisors part//////////////////////////////////////////////
 vector<int> p;
 void  prime_fact(int n){         // o log (n) * ( log(log(n) :sort)
@@ -32,28 +37,59 @@ void  prime_fact(int n){         // o log (n) * ( log(log(n) :sort)
          if (n > 2) p.push_back(n);
          sort(p.begin() , p.end()) ;
 }
-
+////////////////////////////////////////////prime factors using preprocessing with sieve O ( cntprimes )  , divisors O(cnt divs)
+const int MAX_PRE = 1e6+10;
+std::vector<int> spf(MAX_PRE + 1);
+const int N  =  1e6+1 ;
+vector  <int >freq(N) , ans(N , -1);
+vector  <vector < int >  > Divs(N)  , primes (N) ;
+ 
+void sieve() {
+    for (int i = 2; i <= MAX_PRE; i++) {
+        spf[i] = i;
+    }
+    for (int i = 2; i * i <= MAX_PRE; i++) {
+        if (spf[i] == i) {
+            for (int j = i * i; j <= MAX_PRE; j += i) {
+                if (spf[j] == j) {
+                    spf[j] = i;
+                }
+            }
+        }
+    }
+}
+// get prims at O (n of primes with above prepr)
+std::vector<int> getPrimeFactors(int n) {
+    std::vector<int> primeFactors;
+    while (n != 1) {
+        primeFactors.push_back(spf[n]);
+        n /= spf[n];
+    }
+    return primeFactors;
+}
+ 
 vector<pair<int,int> > val;
 vector<int>  divisors;
-
+ 
 void build(int idx , int cur){
           if (idx==val.size()){
                   divisors.push_back(cur);
                   return  ;
           }
-
+ 
           build(idx+1, cur);
           for (int i =1 ; i <=val[idx].S ; ++i){
                    cur*=val[idx].F;
                    build(idx+1 ,cur);
           }
-
+ 
 }
 void  build_divs(int num){          //generate divs in divsiors time
-
-              prime_fact(num);
+ 
               divisors.clear();
               val.clear();
+ 
+              vector <int>  p =  getPrimeFactors(num) ;
               for (int i = 0 ;  i<p.size() ; ++i){
                        int cnt  =1;
                        while(i+1 < p.size() and p[i]==p[i+1] ){
@@ -62,27 +98,11 @@ void  build_divs(int num){          //generate divs in divsiors time
                        }
                        val.push_back({p[i] ,cnt});
               }
-
               build(0 , 1);
-
-
 }
-
-
-
-void lets_start_as_we_never_failed(){
-
-
-    build_divs(1000);
-    for (auto &val :divisors)
-               cout<<val<<" ";
-
-
-
-
-
-
-}
+ 
+ 
+ 
 //////////////////////////////////////////////////////////////////
 #define ll long long
  ll lcm(ll a, ll b){
@@ -90,6 +110,20 @@ void lets_start_as_we_never_failed(){
                 return a/__gcd(a,b)*b;
 
  }
+
+int mul_l_r_mod(int l , int r){
+                   // sence mul[i] = (mul[i-1]  *cur[i])%mod
+                   return (l==0)?mul[r]:mul[r] * mod_inv(mul[l-1]);
+}
+int div (int a  ,  int  b , int m){
+                  return  (a%m * ModInverse(b,m)%m) % m;
+}
+int sum(int a , int b , int m){ // a ,b maybe negative
+               return (a%m +b%m + m) % m;
+}
+int sub(int a , int b , int m){ // a ,b maybe negative
+               return (a%m - b%m + m) % m;
+}
 ll nPr(ll n,ll r, ll mod){
 
                                ll ret = 1 ;
