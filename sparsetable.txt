@@ -20,15 +20,14 @@ int calc (int v1 , int v2){
 }
 void pre  (){
 
-       lg[1] =   0 ;
+       for (int  i= 1 ; i <=n+1 ; ++i)
+                 lg[i] =  log2(i);
 
        for (int  i =   0 ; i  < n ;  ++i){
                  st[0][i]  =  a[i] ;
-                 if (i  >=2)
-                        lg[i]  =lg[i/2]+1;
+                 
        }
-       lg[n]   =  lg[n/2]+1;
-
+    
        for (int i =1 ;  i  <=  mxlog ;  ++i){
                 for (int  j  =0 ;  j  + (1 << i) -1  <  n  ; ++j){
                            st[i][j]  = calc (st[i-1][j] , st[i-1][j +(1 << i-1)]) ;
