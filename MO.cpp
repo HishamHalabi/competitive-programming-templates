@@ -57,12 +57,12 @@ struct MO  {
                work() ;
        }
 
-       void add(int x)   {
-               res+=nums[x];
+       void add(int idx)   {     /// note this is idx not value
+               res+=nums[idx];    
        }
 
-       void del(int x)  {
-               res-=nums[x];
+       void del(int idx)  {
+               res-=nums[idx];
        }
 
        void work()  {
