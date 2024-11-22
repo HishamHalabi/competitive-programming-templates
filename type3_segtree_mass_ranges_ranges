@@ -71,7 +71,7 @@ struct segtree{
         if (rx<=l || lx>=r)
             return  ;
         if (lx >=l and rx<=r){
-            update(val[x] , oper , rx-lx);
+            update(val[x] , oper , x);
             apply(operations[x] ,  oper , rx-lx);
             op[x] = 1;
 
