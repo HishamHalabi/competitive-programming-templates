@@ -33,6 +33,9 @@ ostream  &operator <<(ostream &os  ,multiset<t> & v){
 
 struct   SQRT {
       //update Neutral  , merge , item
+/*
+    if u wuold like to change sq value remeber those data that of size  n  /sq and we make them sq
+*/
 
       int sz , sq ;
       vector < item > blocks;
@@ -108,12 +111,14 @@ void  ICPC ()  {
               if(k==1) {
                      int idx,  v;
                      cin >> idx>>v;
+                     idx--;       //0bas
                      tmp.update(idx, v)  ;
               }
               else  {
                       int  l , r;
                       cin >>  l  >> r ;
-                      cout<<tmp.query( l  , r-1)  <<"\n";
+                      l-- ; r-- ; // 0based
+                      cout<<tmp.query( l  , r)  <<"\n";
               }
       }
 
