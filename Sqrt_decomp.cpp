@@ -30,7 +30,12 @@ ostream  &operator <<(ostream &os  ,multiset<t> & v){
 #define F first
 #define S second
 #define  item int
+/*
+    case processing   : write dif codes depending on constarints
+    batch  //   :   push updates while they are  < sq and answer by iterating over them if they exeed sq update them once 
+    heavy && light  :  
 
+*/
 struct   SQRT {
       //update Neutral  , merge , item
 /*
