@@ -1,158 +1,121 @@
-/*
-   صل عل محمد
-   if (u == Abdel-Aziz Mostafa )   love u <3 ;
-  دايما احلم ربنا المنان
-
-*/
-#include<bits/stdc++.h>
-using namespace std;
-
-#define N 300007
-//#define mod 1000
-#define int long long
-#define F first
-#define S second
-
-
-#define   item int
-
-
-
+struct item  {
+     int    mn  = 0   ;
+     int    cnt   = 0 ;
+};
+ 
+ 
 struct segtree{
-
-
-
-    vector <int> op;
-    vector <item>  operations;
-    vector <int > val ;
-
+ 
+ 
+ 
+    vector <int  > op;
+    vector <int >  operations;
+    vector <item > val ;
+ 
     int sz =1;
     segtree(int n){         //empty
         while(sz<n)sz*=2;
         operations.resize(2*sz);
         op.resize(2*sz);
         val.resize(2*sz) ;
-
+ 
     }
     int Neutral_elemnt  = 0 ;
-
-    int merge(int m1  ,  int m2 , int len){
-        return  m1 + m2 ;
+ 
+    item merge(item m1  ,  item m2 , int len){
+              item ret = {min(m1.mn , m2.mn) , 0}  ;
+              if (m1.mn == ret.mn)
+                     ret.cnt+=m1.cnt;
+ 
+              if (m2.mn == ret.mn)
+                     ret.cnt+=m2.cnt;
+ 
+             return ret ;
+ 
     }
-
-    item operation (item a ,  item b , int x){
-        if (!op[x])
-            return  b ;
-
+ 
+    int  operation (int a ,  int  b , int x){
+         if (!op[x]) {
+                return b ;
+         }
         return a + b;
     }
-
-    void apply(item& a ,item b , int x){
+ 
+    void apply(int & a ,int  b , int x){
         a=operation (a, b ,x);
     }
-    void update(int & cur  , item oper , int len){
-        cur+=oper * len ;
+ 
+    void update(item & cur  , int  oper , int len){
+          cur.mn += oper ;
     }
+ 
     void reset (int x , int  lx ,int rx){
          /**
           *
-          *         here we don't have case that rx -lx ==1 so make sure if u add code 
+          *         here we don't have case that rx -lx ==1 so make sure if u add code
           *
           */
             val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2 ) ;
             if (op[x])
                 update(val[x] , operations[x] , rx-lx ) ;
-
+ 
     }
-
-
-    void change  (int  l , int r,item oper , int x, int lx ,  int rx){
-
+ 
+ 
+    void change  (int  l , int r,int  oper , int x, int lx ,  int rx){
+        if (val[x].cnt == 0 ) {
+                      val[x].cnt =  rx-lx ;
+        }
         if (rx<=l || lx>=r)
             return  ;
         if (lx >=l and rx<=r){
-            update(val[x] , oper , x);
-            apply(operations[x] ,  oper , rx-lx);
-            op[x] = 1;
-
+            update(val[x] , oper , rx-lx);
+            apply(operations[x] ,  oper , x);
+            op[x] =  1;
+            //cout<<x<<" "<<operations[x]<<"\n";
+ 
             return ;
         }
         int md  = (lx+rx)/2;
         change( l, r, oper, 2*x+1 ,lx, md);
         change (l, r, oper ,  2*x+2 , md, rx);
-
+ 
         reset(x ,lx, rx) ;
     }
-    void change (int  l ,int r ,item oper){
+ 
+    void change (int  l ,int r ,int  oper){
+        if (l  >=r )
+            return ;
         change(l,r , oper,0 ,0,sz);
     }
-    int calc( int  l,  int r , int x , int lx , int rx ){
-
-
-        if (lx>=r  ||rx<=l)
-            return  Neutral_elemnt ;
+ 
+    item  calc( int  l,  int r , int x  , int lx , int rx ){
+ 
+        if (val[x].cnt == 0)  {
+                     val[x].cnt=  rx-lx;
+        }
+        if (lx>=r  ||rx<=l){
+            return  {  (int) 2e9 , 0 } ;
+        }
         if (lx>= l  and rx<=r){
-            // cout<<val[x] <<"\n";
             return val[x] ;
         }
-
+ 
         int md  =  (lx+rx)/2;
-        int res1= calc( l , r , 2*x+1 ,lx ,md);
-        int res2 = calc( l , r, 2*x+2 , md, rx) ;
-        int res  = merge(res1 , res2 , rx-lx) ;
+        item  res1= calc( l , r , 2*x+1 ,lx ,md);
+        item  res2 = calc( l , r, 2*x+2 , md, rx) ;
+        item  res  = merge(res1 , res2 , rx-lx) ;
+       // cout<<x<<" "<<lx<<" "<<rx<<" "<<res1.mn<<" "<<res2.mn <<" "<<operations[x]<<"\n";
         update(res , operations[x] , r-l)  ; /* note we care about the actual seg */
         return res ;
-
-
+ 
+ 
     }
     int calc(int l,  int r){
-        return calc(l , r , 0, 0, sz) ;
+          item ret= calc( l , r,   0 , 0, sz) ;
+         // cout<<ret.mn<<" ";
+          return ret.mn == 0 ? ret.cnt : 0;
     }
-
-
+ 
+ 
 };
-signed main() {
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
-
-
-    int n, m ;
-    cin>>n>>m;
-    segtree sg(n+2);
-
-    for (int  i = 0 ; i  < n ; ++i) {
-        int v;
-        cin >> v;
-
-        sg.change(i ,  i +1 , v) ;
-    }
-
-
-    for (int  i = 0 ; i  <m; ++i)
-    {
-        int q;
-        cin>>q;
-        if (q==1)
-        {
-            int l  , r ,v ;
-            cin>>l>>r>>v;
-            l-- ;
-            sg.change( l ,r ,v);
-
-        }
-        else if (q==2)
-        {
-            int  p ;
-            cin >> p ;
-
-            cout<<sg.calc (p-1 , p )<<"\n";
-
-        }
-
-
-    }
-
-
-
-}
