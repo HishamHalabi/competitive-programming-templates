@@ -188,6 +188,7 @@ int nCr(int n, int a){
 };
 ////////////////////////////catlan Numbres // 
 any balanced segence of len N > > full 01 tree of n+1 leafes and vice versa
+n places >> max n-1 blancd segqunces
 
 ////////////////////////
 The Catalan number  
@@ -195,7 +196,7 @@ $C_n$  is the solution for
 
 Number of correct bracket sequence consisting of   
 $n$  opening and  
-$n$  closing brackets.
+$n$  closing brackets.     >> with n+1 places
 The number of rooted full binary trees with  
 $n + 1$  leaves (vertices are not numbered). A rooted binary tree is full if every vertex has either two children or no children.
 The number of ways to completely parenthesize  
