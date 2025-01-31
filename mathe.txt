@@ -187,7 +187,9 @@ int nCr(int n, int a){
 
 };
 ////////////////////////////catlan Numbres // 
+any balanced segence of len N > > full 01 tree of n+1 leafes and vice versa
 
+////////////////////////
 The Catalan number  
 $C_n$  is the solution for
 
