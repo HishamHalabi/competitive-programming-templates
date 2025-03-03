@@ -163,11 +163,15 @@ int power(int a, int b){
          }
          return res;
 }
-int mod_inv(int n){
+int mod_inv(int n){        //affected by prime mods
          return power(n, mod - 2);
  }
 
 int nCr(int n, int a){
+        if (mod == 2) {
+                   return ((n & a) == a) ? 1 : 0;
+        }
+
         if(n < a) return 0;
         int top = factorial[n];
         int bot = mod_inv(factorial[a]) * mod_inv(factorial[n - a]); bot %= mod;
