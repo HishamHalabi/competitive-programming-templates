@@ -231,3 +231,7 @@ int Cat(int n) { // nCr(2*n,n) / (n+1)
     return (long long) nCr(2 * n, n) * mod_inv(n+1) %mod; 
 }
 
+/////////////////////////////////////////////
+////////////////////Pascal Triangle/////////////////////////////////////
+a[r][col] =  RcCol
+
