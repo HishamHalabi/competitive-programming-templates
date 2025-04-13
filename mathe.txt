@@ -21,7 +21,7 @@ long long intSqrt(long long n) {
 
 ///////////////////////////divisors part//////////////////////////////////////////////
 vector<int> p;
-void  prime_fact(int n){         // o log (n) * ( log(log(n) :sort)
+void  prime_fact(int n){         
           p.clear() ;
 
           while (n%2 == 0){
@@ -104,19 +104,15 @@ void  build_divs(int num){          //generate divs in divsiors time
  
  
 //////////////////////////////////////////////////////////////////
-#define ll long long
- ll lcm(ll a, ll b){
-
-                return a/__gcd(a,b)*b;
-
- }
-
  eculiden theorem 
  gcd(a,b) = gcd(max(a,b)%min(a,b) , min(a,b) ) 
 
 exteded eculiden 
- if gcd(a,b)  = g always ther's some x , y (int and maybe neg )   >> a.x + b.y  =g  
+ if gcd(a,b)  = g always ther's some x , y (int and maybe neg )   >> a.x + b.y  =g 
 
+int  lcm(int a, int b){
+             return a/__gcd(a,b)*b;
+}
 int gcd(int a, int b, int& x, int& y) {
     if (b == 0) {
         x = 1;
@@ -132,18 +128,14 @@ int gcd(int a, int b, int& x, int& y) {
 The recursive function above returns the GCD and the values of coefficients to x and y (which are passed by reference to the function).
 
 /////////////////////////////////////////////////
-int mul_l_r_mod(int l , int r){
-                   // sence mul[i] = (mul[i-1]  *cur[i])%mod
-                   return (l==0)?mul[r]:mul[r] * mod_inv(mul[l-1]);
+int Div (int a  ,  int  b , int m){
+                  return  (a%m * mod_inv(b)%mod) % mod;
 }
-int div (int a  ,  int  b , int m){
-                  return  (a%m * ModInverse(b,m)%m) % m;
+int sum(int a , int b ){ // a ,b maybe negative
+               return (a%mod +b%mod + mod) % mod;
 }
-int sum(int a , int b , int m){ // a ,b maybe negative
-               return (a%m +b%m + m) % m;
-}
-int sub(int a , int b , int m){ // a ,b maybe negative
-               return (a%m - b%m + m) % m;
+int sub(int a , int b){ // a ,b maybe negative
+               return (a%mod - b%mod + mod) % mod;
 }
 ll nPr(ll n,ll r, ll mod){
 
