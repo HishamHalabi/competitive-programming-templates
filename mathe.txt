@@ -173,7 +173,7 @@ int mod_inv(int n){        //affected by prime mods
 
 int nCr(int n, int a){
 
-
+        if(n==a)return 1 ; 
         if (mod == 2) {
                    return ((n & a) == a) ? 1 : 0;
         }
