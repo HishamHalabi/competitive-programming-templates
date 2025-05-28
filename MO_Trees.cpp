@@ -18,6 +18,8 @@ using namespace std;
          note n is globaly
          FT , data that depend on idx on mo  >> 2 *  n +1 
          sqrt
+         idx int Work for query but idx in add ,del .. is time
+         each usage of MO set timer =  0 
 */
 
 const int N  = 3e5 +7 , sq= 350 , mxlog = 20  ;
