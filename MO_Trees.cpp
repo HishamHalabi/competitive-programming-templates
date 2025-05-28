@@ -20,6 +20,10 @@ using namespace std;
          sqrt
          idx int Work for query but idx in add ,del .. is time
          each usage of MO set timer =  0 
+
+
+         Have Updates !!!
+              consider the array itself [  ]       , adding value and versa   , answering  from  u  to lc . .. lc to v (to detect the people with odd (path)  first or second appear )
 */
 
 const int N  = 3e5 +7 , sq= 350 , mxlog = 20  ;
