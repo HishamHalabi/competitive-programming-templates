@@ -34,6 +34,8 @@ ostream  &operator <<(ostream &os  ,multiset<t> & v){
     case processing   : write dif codes depending on constarints
     batch  //   :   push updates while they are  < sq and answer by iterating over them if they exeed sq update them once 
     heavy && light  :  simple graph such that if u change any node update heavy ones and when answer some light node just brute force 
+    Blocks and query (seg tree )  
+    Just Blocks and imagine simple arrays :  first time to out of array ( what i to out form block?? )
 
 */
 struct   SQRT {
