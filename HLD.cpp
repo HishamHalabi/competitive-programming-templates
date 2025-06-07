@@ -19,6 +19,16 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
 #define int long long
 
 //dont GO For HLD before think LCA , ..
+/*
+   dealing with edges will be same but
+       make node keep info of it's (pr ..nd) edge 
+       when reaching case  u , v and u is lca make u down so don't take edge of parent  
+              if (Head[u]  ==  Head[v])  {     //one is LCA
+                         if(depth[u]  > depth[v])  swap(u , v) ;
+                         res.push_back({Tin[u]+1 ,  Tin[v]}) ; 
+                         return res ;
+      }
+*/
 
 #define item int
 struct segtree{
