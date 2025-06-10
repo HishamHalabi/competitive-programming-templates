@@ -85,6 +85,8 @@ int get(int nd    , int pr , int msk)  {
        in centroid tree  :  if LCA(u , v)   = lc  >>>  real path pass by lc
                              note2  :  any path from subtree of curCen to any node up from cent in real pass by this
 
+                             very very imporant !!!  >> any path from me to any node should path by one from my centroid ancestors  >> actualt the 3 notes are same
+
        considering paths overall  >> enough to consider what pass from nd to it's sub  or two nodes in dif childs
        considering paths for pass by node  >>  consider this example and note 2  ( it's about calcing your normal paths   , adding them to childs assoicate with)
 */
