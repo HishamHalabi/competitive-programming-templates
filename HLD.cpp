@@ -144,14 +144,14 @@ struct  HLD {
 
     }
 
-
-    vector < pair <int, int > > path  (int  u , int v)  {
+vector < pair <int, int > > path  (int  u , int v  , bool query_of_type_nodes)  {
           vector < pair < int, int >  > res ;
           while(true)  {
 
                   if (Head[u]  ==  Head[v])  {     //one is LCA
                          if(depth[u]  > depth[v])  swap(u , v) ;
-                         res.push_back({Tin[u] ,  Tin[v]}) ;
+                         if (query_of_type_nodes)res.push_back({Tin[u] ,  Tin[v]}) ;
+                         else  res.push_back({Tin[u]+1 ,  Tin[v]}) ;
                          return res ;
                   }
 
@@ -160,6 +160,45 @@ struct  HLD {
                   res.push_back({Tin[Head[v]] ,  Tin[v]}) ;
                   v = par[Head[v]] ;
           }
+    }
+
+
+    vector <vector  <int > >   getOrderdPath( int u , int v , int  k )  {   // segs orderd by apperance in u >>  v path
+           vector < pair < int,int > > segs =  path(u , v  , 1 )   ;
+
+           map < int  , int > st ;       //log(log)
+           for (auto[ l ,r ] : segs)   st[r] = l  ;
+
+
+
+           int cur = Tin[u]  , lf = 0 ;
+           deque < pair< int , int >   > lft ,  rght    ;
+           vector <pair < int, int > > ret;
+
+           while((lft.size()    +rght.size())  != segs.size()) {
+
+                        if(st.find(cur)==st.end()) {
+                                  lf  = 1;
+                                  cur =  Tin[v] ;
+                        }
+
+                        if (!lf) lft.push_back({st[cur], cur})  ;
+                        else rght.push_front({st[cur],  cur}) ;
+
+
+                        cur =st[cur]  ;
+                        int  u =  nds[cur] ;
+                        if  (par[u])  cur = Tin[par[u]]  ;
+                        else cur   = -1 ;
+           }
+
+           for (auto pr  :  lft)   ret.push_back(pr) ;
+           for (auto pr  :  rght)   ret.push_back(pr) ;
+           //return ret;
+          
+        
+         return ret; 
+
     }
 
 
@@ -177,7 +216,7 @@ struct  HLD {
     // u can do segtree for each heavy path as opt
     int query (int   u  ,int  v )  {
 
-           vector < pair < int,int > > segs =  path(u , v)   ;
+           vector < pair < int,int > > segs =  path(u , v   ,1 )   ;
 
            item ret   =  0 ;
            for (auto [l  , r]   : segs)  {
