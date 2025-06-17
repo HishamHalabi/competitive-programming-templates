@@ -1,4 +1,4 @@
- 
+  
 long long intSqrt(long long n) {
     if (n == 0 || n == 1) return n;  // Base cases
 
@@ -248,5 +248,15 @@ int Cat(int n) { // nCr(2*n,n) / (n+1)
 
 /////////////////////////////////////////////
 ////////////////////Pascal Triangle/////////////////////////////////////
-a[r][col] =  RcCol
+a[r][col] =  RcCol            0baesed
+//////////////////////////////Fibonaci//////////////////////
+Example: x6
+x6 =  
+(1.618034...)6 − (1−1.618034...)6
+√5
+ 
+
+When I used a calculator on this (only entering the Golden Ratio to 6 decimal places) I got the answer 8.00000033 , a more accurate calculation would be closer to 8.
+
+Try n=12 and see what you get.
 
