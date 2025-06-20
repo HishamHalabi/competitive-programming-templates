@@ -19,6 +19,7 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
 #define int long long
 
 //dont GO For HLD before think LCA , ..
+//try to solve problems about being have info for each node and update path quickly (HLD start fro u to root take each heavy handle it)
 /*
    dealing with edges will be same but
        make node keep info of it's (pr ..nd) edge 
