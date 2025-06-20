@@ -89,6 +89,11 @@ int get(int nd    , int pr , int msk)  {
 
        considering paths overall  >> enough to consider what pass from nd to it's sub  or two nodes in dif childs
        considering paths for pass by node  >>  consider this example and note 2  ( it's about calcing your normal paths   , adding them to childs assoicate with)
+
+
+
+       in query  , Updates  >> rember u store info based you original subtree rooted at this Cen    so your most trials as how to add info once and how to query fro
+       it and answer from it after that it's easy to store what u make able to see original when update ,...  (u can store whole graph xD)
 */
 void decompose  (int nd , int pr_cen = -1)  {
 
