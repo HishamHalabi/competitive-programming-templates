@@ -20,7 +20,7 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
 #define cnt(num)  __builtin_popcountll(num)
 
 
-/*
+/* very very important for autmation to consider letter cases
  * pi  = i  >>  i is length so next trial are i+1
  * consider text +  "$"  +  patt
  */
@@ -118,3 +118,67 @@ signed main() {
 
 
 }
+
+//////////////////////////////
+
+int  n  ,  m  , L ;
+string s1 , s2 , virus ;
+vector  <vector  <int >> aut  ;
+
+pair < int , int  >   dp[101][101][101] ;
+
+//0 i+1  1 i+2 2 take both
+pair < int,int >  solve(int i ,  int  j ,  int len)  {
+
+    if (i == n ) return  {0 , 0} ;
+    if (j == m)   return   {0 , 0} ;
+    auto &ret =dp[i][j][len] ;
+    if (~ret.F)  return ret;
+
+    pair < int, int >  t1 = {solve(i+1 , j  , len).F , 0} ;
+    pair < int, int > t2 = {solve(i , j +1 , len).F  , 1} ;
+    if ((s1[i] != s2[j] ||  aut[len][s1[i]-'A'] >= L) ) return ret =max(t1,t2)   ;
+    pair < int, int > t3 =  make_pair(1+solve(i+1 , j+1 , aut[len][s1[i]-'A']).F,  2) ;
+
+    return ret = max(t1 , max(t2, t3)) ;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
+
+    cin >> s1 >> s2 >> virus ;
+
+    n = s1.size() ,  m = s2.size()  ,  L=  virus.size() ;
+
+    aut =  compute_automaton(virus) ;
+
+    for (int i = 0 ; i  <n  ; ++i)
+        for (int j = 0  ; j   < m ; ++j)
+            for (int  l = 0 ;  l  < L ; ++l)dp[i][j][l].F = -1;
+
+
+
+    string ans = "";
+    int  i = 0  ,   j = 0  ,len = 0 ;
+    while(i!=n and  j!=m) {
+        auto ret = solve( i   ,j   ,len)  ;
+       // cout<<ret.F<<"\n";
+
+        if (ret.S == 0 )  {
+            i++   ;
+        }else if (ret.S == 1)  {
+            j ++ ;
+        }else  {
+            ans+=s1[i] ;
+            len =aut[len][s1[i]-'A'];
+            i++ , j++ ;
+        }
+    }
+
+    if (ans.empty())cout<<0<<"\n";
+    else cout<<ans<<"\n";
+
+
+
+}
+
