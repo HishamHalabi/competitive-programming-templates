@@ -103,13 +103,15 @@ signed main() {
 
        res   =  patt  + "$" +  text ;
 
+
+      //u can build aut on only patt cause aut only need max prefix   need to be calced for auto[i][c]  and we dont need to calc for aut[i>=lenOfPatt] >> ivalid case
        aut = compute_automaton(res) ;
        n   =  aut.size()  -1   ;
 
        memset(dp , -1 , sizeof  dp) ;
        //cout << n <<"\n";
 
-         //after #
+         //af
          cout<<solve(   patt.size()  +1  ,   0 ) <<"\n";
      }
 
