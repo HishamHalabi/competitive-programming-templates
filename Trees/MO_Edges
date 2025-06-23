@@ -1,0 +1,271 @@
+
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+#define F first
+#define S second
+
+/*
+       for edges   :  dont need handle lc case
+        set timer= 0
+*/
+
+const int N  = 1e6 +7 , sq= 350 , mxlog = 20  ;
+
+vector<pair<int,int>  > g[N]  ;
+
+int dp[N][mxlog+5]   , depth[N] , n , Tin[N]  , Tout[N] , FT[N]  /*FT[i]  : idx edge*/ ,  timer= 0   ;
+
+void dfs (int nd  , int par){      // prelca call this func
+
+        for (auto &[ch ,i]  : g[nd]) {
+                  if(ch ==par)
+                         continue ;
+                  depth[ch]  =  depth[nd]+1 ;
+                  dp[ch][0] = nd;
+                  FT[timer] = i ;
+                  Tin[i] = timer++ ;
+                  dfs(ch , nd) ;
+                  FT[timer]  = i;
+                  Tout[i] = timer++ ;
+        }
+}
+
+
+int lca (int  u ,  int v) {  // O(logn)
+
+        if (depth[u]   < depth[v])
+                  swap( u , v) ;
+
+        for (int  k  =mxlog ; k>=0 ; k--){
+                  if (dp[u][k]!=-1 and  depth[dp[u][k]] >=depth[v]){
+                           u =  dp[u][k]  ;
+                  }
+        }
+
+        if (u == v)
+               return   u  ;
+
+
+        for (int  k  =  mxlog ; k>=0 ; k--){
+                  if (dp[u][k]!=dp[v][k]){
+                           u =dp[u][k] ;
+                           v =dp[v][k];
+                  }
+        }
+
+        return dp[u][0] ;
+}
+
+
+int dis ( int u  , int v)  { //updated in this problem
+           return abs(depth[u]  - depth[v]) ;
+}
+
+
+int kth_par(int  u  , int x)  {
+       for (int k =  mxlog ;   k>= 0 ; k--){
+                if ((1<<k)  <=x ){
+                          u =  dp[u][k] ;
+                          x-=1<<k  ;
+                          if ( u== -1)
+                                return  u ;
+                }
+        }
+        return  u  ;
+}
+void pre_lca(int root) {
+          for (int  i = 1 ; i  <=n ; ++i){
+                    for (int k =    0 ; k<=mxlog ; ++k )
+                             dp[i][k] = -1  ;
+          }
+
+          depth[root] =   0 ;
+
+          dfs(root ,  -1) ;
+          for (int  k =1 ; k <=mxlog ; ++k){
+                    for (int u = 1 ; u<=n ; ++u){
+                             dp[u][k]  = (dp[u][k-1]==-1)  ?  -1  :  dp[dp[u][k-1]][k-1] ;
+                    }
+
+
+          }
+}
+
+
+struct  query  {
+       int  l ,  r, idx , lc_case ,lc;  // lc here rep time input of lca i.e FT[lc]   = lca
+       bool operator< (query& other)  {
+               if(other.l/sq  != l/sq)
+                       return    l  < other.l ;
+               return  ((l/sq)&1) ?  r > other.r  :  r<other.r;
+       }
+};
+
+int weight[N]   ;
+vector< int > freq(N) ;
+
+#define  item int
+struct MO  {
+       int sz , l = 0 , r=-1  , res = 0 , mex = 0 /*empty*/;
+       vector   <query > qu ;
+       vector <int > ans;
+       vector < int > cur ;
+       vector < int> take;
+
+       MO (int n  , vector <query >  qu) {
+               sz = 2*n+5  ;      ///  nodes visited twice
+               take.resize(sz+1) ;
+               this->qu =  qu ;
+               ans.resize(qu.size()) ;
+               sort(this->qu.begin() , this->qu.end()) ;
+               work() ;
+       }
+
+
+       void add(int idx)   {     /// note this is idx not value
+             int edge =  FT[idx] ;
+             int w =  weight[edge] ;
+             freq[w]++ ;
+             while(freq[mex])
+                     mex++   ;
+       }
+
+       void del(int idx)  {
+            int edge =  FT[idx] ;
+            int w =  weight[edge] ;
+            freq[w]-- ;
+            if (freq[w] == 0 and w< mex)mex  = w ;
+       }
+
+       void push (int idx )  {
+             int e =FT[idx]  ;
+             take[e]^=1 ;
+             take[e]?   add(idx)  : del(idx)  ;
+       }
+
+       void pop (int idx)  {
+            int e =  FT[idx] ;
+            take[e]^=1 ;
+            take[e]  ?  add(idx) :  del(idx) ;
+       }
+       int calc  (int idx) {
+             return mex;
+       }
+
+       void work()  {
+
+              for (auto &[lq,rq , idx , lc_case , lc] : qu) {
+                         if (lq==-1){
+                                  ans[idx]  = 0 ;
+                                  continue ;
+                         }
+                         while(r<rq)      push(++r)  ;
+                         while(l > lq)    push(--l) ;
+                         while(l  < lq)   pop(l++) ;
+                         while(r  > rq)   pop(r--) ;
+                         ans[idx] =  calc(idx) ;
+              }
+       }
+
+       int Query(int idx)  {
+             return ans[idx] ;
+       }
+
+};
+
+// n is global
+void  ICPC ()  {
+    int  q  ;
+    cin >> n >>  q;
+
+    vector < map < int,int > > edge(n+1) ;
+    for (int  i = 0 ; i+1  < n ; ++i)  {
+              int  u , v ;
+              cin >> u >> v >> weight[i];
+
+              weight[i]  = min(weight[i] , N-5) ;
+
+              g[u].push_back({v , i}) ;
+              g[v].push_back({u , i}) ;
+              edge[u][v] = edge[v][u] = i  ;
+    }
+
+     pre_lca(1) ;
+
+   vector<query > qu;
+
+
+    for (int  i = 0 ; i <q;  ++i)  {
+              int  u , v  ;
+              cin >>  u >> v  ;
+
+              if (depth[u]  >depth[v])  {
+                     swap(u ,  v) ;
+              }
+
+              if (u==v) {
+                       qu.push_back({-1 , -1 , i , 0 , -1})  ;
+                       continue ;
+              }
+
+              int lc =  lca(u , v)   , l  , r ;
+
+              if (lc ==  u )  {
+                        int pv = dp[v][0] ;
+                        int chu = kth_par(v , dis(v ,u)-1) ;
+                        l =  Tin[edge[u][chu]] , r  =  Tin[edge[v][pv]] ;
+
+
+                        qu.push_back({l , r, i ,1 , Tin[lc]}) ;
+              }
+              else  {
+
+                        int pu = dp[u][0] ;
+                        int pv=  dp[v][0] ;
+
+                        int  e1 = edge[u][pu] ;
+                        int  e2 = edge[v][pv] ;
+                        if(Tout[e1]  > Tout[e2])swap(e1,e2)  ;
+                        int l  =  Tout[e1]   , r =  Tin[e2] ;
+
+                        qu.push_back({l , r, i , 0 ,Tin[lc]}) ;
+
+              }
+
+
+    }
+
+    MO ob(n ,  qu)  ;
+
+    for (int  i = 0 ; i  < q ; ++i)  {
+             cout<<(ob.Query(i)  )<<"\n";
+    }
+
+
+
+}
+
+
+int32_t main(){
+
+     //cout<<"hh\n";
+
+
+    int tc=1;
+    while(tc--)  {
+        // cout<<"Case #"<<i++<<": ";
+        ICPC() ;
+    }
+
+
+}
