@@ -1,1 +1,56 @@
 
+vector<vector<int > >  adj(sz);
+queue<int> qu;
+vector<int> level (sz,-1);
+vector<int> vis(sz);
+vector<int> Parent(sz,-1);
+char  grid[10][10];
+class BFS{
+public :
+    void bfs1 (int node){       //shortest path from one to many (directed and un) or from many to one (undircted)  (cycle or not )
+        // if there's no cycles else u need the same with min()
+        qu.push(node);
+        level[node]=0;
+        while(!qu.empty()){
+            int parent=qu.front();
+            qu.pop();
+            for (auto &child : adj[parent]){
+                if (level[child]==-1){
+                    level[child]=level[parent]+1;
+                    qu.push(child);
+                    Parent [child]=parent;
+                }
+            }
+        }
+    } //vis all nodes
+    bool valid(int i,int j){
+        return true;
+        // return (i<n and i>=0 and j<m and j>=0);
+    }
+    map<pii,int>dis;
+    void bfs (pii node){
+
+        queue<pii> qu;
+        map<pii,bool> vis;
+
+        map<pii,pii>Parent;
+        qu.push(node);
+        dis[node]=0;
+        while(!qu.empty()){
+            pii parent =qu.front();
+            qu.pop();
+            vis[parent]=true;
+            int r=parent.first;
+            int c=parent.second;
+            pii ir[]={{r+1,c},{r,c+1},{r-1,c},{r,c-1}};
+            for (int i=0;i<4;i++){
+                pii child=ir[i];
+                int I=child.first;
+                int j=child.second;
+                if(!valid(I,j)||(vis[child]) || grid[I][j]=='#')continue;
+                dis[child]=dis[parent]+1;
+                Parent[child]=parent;
+            }
+        }
+    }
+};
