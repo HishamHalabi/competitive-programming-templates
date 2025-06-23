@@ -1,0 +1,101 @@
+vector<vector<int > >  adj(sz);
+queue<int> qu;
+vector<int> level (sz,-1);
+vector<int> vis(sz);
+vector<int> Parent(sz,-1);
+class DFS {
+public :
+    void dfs1(int node) {
+        vis[node] = true;
+        cout << node << " ";
+        for (auto &child: adj[node]) {
+            if (!vis[child])dfs1(child);
+        }
+    } // vis all nodes
+    /////////////////////////////////////////////////
+    int ans=0;
+    void dfs2(int node) {
+        stack<int> s;
+        s.push(node);
+        vis[node] = true;
+        ans++;
+        while (!s.empty()) {
+            int parent = s.top();
+            s.pop();
+            vis[parent] = true;
+            cout << parent << " ";
+            for (auto &child: adj[parent]) {
+                if (vis[child])continue;
+                s.push(child);
+            }
+        }
+    }  //vis all nodes
+    ///////////////////////////////////////////////// 
+    tree diameter 
+_______________________________
+  pii dfs(int node,int parent){ //long path from i and it's last point 
+    p[node]=parent; //consruct  longest path 
+    pii res={0,node};
+    bool f=0;
+    for (auto &child: adj[node]){
+        if (child!=parent ){
+            if (hi.find({child, node})==hi.end()) hi[{child, node}]=dfs(child, node );
+            pii  cur= hi[{child, node}];
+            if (cur.first+1>res.first){
+                res=cur;
+                res.first++;
+            }
+
+        }
+    }
+    //  if (!f )return 0;
+    return res;
+} 
+pii res=dfs(1,-1); 
+pii res2=dfs(res.second,-1); the longest path from all nodes and keep it at p and it's last point 
+____________________________________________________________________________________________________
+vector< vi > adj(sz);
+map<pii,pii > hi;
+map<pii,int > vis;
+pii dfs(int node,int parent){
+    pii res={0,node};
+    bool f=0;
+    for (auto &child: adj[node]){
+        if (child!=parent ){
+            if (hi.find({child, node})==hi.end()) hi[{child, node}]=dfs(child, node );
+            pii  cur= hi[{child, node}];
+            if (cur.first+1>res.first){
+                res=cur;
+                res.first++;
+            }
+ 
+        }
+    }
+    //  if (!f )return 0;
+    return res;
+}
+____________________
+////////////////////////////////////////////////////////////////////////////////////////////
+    int cnt_com(){
+        int n;
+        cin>>n;
+        int ans=0;
+        for (int i=0;i<n;i++){
+            if (!vis[i]){
+                dfs1(i);
+            }
+        }
+/////////////////////////////////////////////////////////////////////
+
+bool DFS(int node ,int tar,bool f){ //check there's cycles from node  DFS(node,node,0) 
+     bool s=0;
+     if (node==tar and !f)return 1;
+     if (!f)vis[node]=true;
+    for (auto &child: adj[node]){
+      if (!vis [child])s|= DFS(child,tar,0);
+    }
+    return s;
+}
+
+    }
+};
