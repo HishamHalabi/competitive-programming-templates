@@ -26,6 +26,7 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
  */
 const int N  = 3e5+4  , mod =1e9 +  7;
 
+//O(n) 
 vector<int> prefiFunction(string pattern) {
     int n = pattern.size();
     vector<int> pi(n, 0);
