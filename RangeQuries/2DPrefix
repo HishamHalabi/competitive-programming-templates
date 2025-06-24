@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+#define error(args...) { string _s = #args; replace(_s.begin(), _s.end(), ',', ' '); stringstream _ss(_s); istream_iterator<string> _it(_ss); err(_it, args); }
+#define sz(x) (int)x.size()
+#define all(x) x.begin(),x.end()
+#define gtr(T) vector<T>,greater<T>
+#define ACPC ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+//#define int long long
+using namespace std;
+using namespace __gnu_pbds;
+template<class T> using ordered_set = tree<T,null_type,less<T>,rb_tree_tag,tree_order_statistics_node_update>;
+
+void err(istream_iterator<string> it) {cerr << endl;}
+template<typename T, typename... Args>void err(istream_iterator<string> it, T a, Args... args) {cerr << *it << " = " << a << endl;err(++it, args...);}
+
+using ll  = long long;
+using pii = pair<int,int>;
+using vi  = vector<int>;
+using vvi = vector<vector<int>>;
+
+template<typename T>
+istream & operator >> (istream &in, vector<T> &a){
+    for(auto &i: a)
+        in >> i;
+    return in;
+}
+template<typename T>
+ostream & operator << (ostream &out, const vector<T> &a){
+    for(auto &i: a)
+        out << i << ' ';
+    return out;
+}
+
+const int dx[] = {0, 0, 1,  -1, 1, -1,  1, -1};
+const int dy[] = {1 , -1, 0, 0, 1, -1, -1,  1};
+
+
+const int N   = 200000 + 5;
+const int M   = 128;
+const ll  INF  = 1e18;
+const int MOD = 1e9 + 7;
+const int LOG = 18;
+
+
+
+int a[100][100];
+int prefixSum[100][100];
+int getSum(int r1,int c1, int r2, int c2) {
+
+    return prefixSum[r2][c2] - prefixSum[r1-1][c2] - prefixSum[r2][c1 - 1] + prefixSum[r1-1][c1-1];
+}
+signed main(){
+    ACPC
+    int n, m;
+    cin >> n >> m;
+    for(int i = 1; i <= n; ++i) {
+        for(int j = 1; j <= m; ++j) {
+            cin >> a[i][j];
+        }
+    }
+    for(int i = 1; i <= n; ++i) {
+        for(int j = 1; j <= m; ++j) {
+            prefixSum[i][j] = prefixSum[i][j - 1] + a[i][j];
+        }
+    }
+    for(int j = 1; j <= m; ++j) {
+        for(int i = 1; i <= n; ++i) {
+            prefixSum[i][j] += prefixSum[i-1][j];
+        }
+    }
+    int q;
+    cin >> q;
+    while(q--) {
+        int r1,c1, r2,c2;
+        cin >> r1 >> c1 >> r2 >> c2;
+        cout << getSum(r1, c1, r2 ,c2) << '\n';
+
+    }
+    return 0;
+}
