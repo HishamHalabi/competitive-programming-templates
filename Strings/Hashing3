@@ -1,0 +1,199 @@
+/*
+   صل عل محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+  دايما احلم ربنا المنان
+
+*/
+#include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace std;
+using namespace __gnu_pbds;
+template<typename T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+template <typename  t>
+ostream  &operator <<(ostream &os ,vector<t> & v){ int s=v.size(); for (int i=0;i<s;i++) os<<v[i]<<" "; cout<<"\n"; return os;}
+
+template <typename  t>
+ostream  &operator <<(ostream &os  ,multiset<t> & v){  for (auto &val:  v)cout<<val<<" " ; return os;}
+
+template <typename t >
+istream  &operator>> (istream & is , vector <t>  & v){ int s=v.size(); for (int i=0;i<s;i++) is>>v[i];  return is;}
+
+template<typename t>
+ostream  &operator <<(ostream &os ,pair<t,t>& pr ){ cout<<pr.first<<" "<<pr.second<<" hh\n " ; return os;}
+
+
+
+//#define mod 998244353
+#define int long long
+#define F first
+#define S second
+
+string x;
+int n  , k;
+
+const int N  =  3e6 ;
+
+int mod =1e9+7 , p1 ,p2 ,p3;   // 19 , 17 , 256,  257  , 31
+
+
+
+#define ll int
+
+
+ll random_int(ll l , ll r){
+    static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
+    return uniform_int_distribution<ll>(l,r)(rng);
+}
+
+pair< int, pair<int,int> >  Hash[N] , re_Hash[N] ;
+int power(int a, int b){
+        if(b < 0) return 1;
+         int res = 1;
+         while(b){
+                  if(b & 1) res = res * a % mod;
+                  a = a * a % mod;
+                  b >>= 1;
+         }
+         return res;
+}
+bool prime(int n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+
+    // Check if n is divisible by 2 or 3
+    if (n % 2 == 0 || n % 3 == 0) return false;
+
+    // Iterate through all numbers from 5 to the square root of n
+    for (int i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0)
+            return false;
+    }
+
+    return true;
+}
+
+void pre_hash()            // n * o(power) n * log
+{                 //zero based
+
+         //   l ....r    << p2 p1 p0
+
+            p1=  random_int(1,1e8);
+            p2=random_int(1, 1e8);
+            p3=random_int(1,1e8);
+
+            mod  = random_int(1e9,2e9);
+
+            int cnt = 3000 ;
+            while(!prime(mod) and cnt--){
+                    mod=random_int(1e9 , 2e9);
+            }
+            if (!prime(mod))
+                     mod=  1e9+7;
+
+         // int  mod= m ;
+
+          for (int i = 0 ; i <n ; ++i){
+                   Hash[i].F=Hash[i].S.F = Hash[i].S.S =(x[i]-'0') ;
+                   if (i){
+                          Hash[i].F   +=   Hash[i-1].F*p1 ;
+                          Hash[i].S.F +=  Hash[i-1].S.F*p2 ;
+                          Hash[i].S.S +=  Hash[i-1].S.S*p3 ;
+                   }
+                   Hash[i].F%=mod;
+                   Hash[i].S.F%=mod;
+                   Hash[i].S.S%=mod;
+          }
+          for (int i = n-1 ; i >=0 ; --i){       //  p0 p1 p2
+                   re_Hash[i].F =re_Hash[i].S.F = re_Hash[i].S.S = x[i]-'0';
+                   if (i!=n-1){
+                           re_Hash[i].F +=re_Hash[i+1].F * p1;
+                           re_Hash[i].S.F +=re_Hash[i+1].S.F *p2;
+                           re_Hash[i].S.S +=re_Hash[i+1].S.S *p3;
+
+                   }
+                   re_Hash[i].F %=mod;
+                   re_Hash[i].S.F%=mod;
+                   re_Hash[i].S.S%=mod;
+          }
+}
+int sub(int a , int b   ){
+       return (a%mod - b%mod + mod)%mod;
+}
+pair<int ,pair<int,int> >  calc_hash(int l  , int r) //zero based
+{
+           pair<int ,pair<int,int> >  ans  = Hash[r];
+
+           if (l){
+              ans.F = sub(ans.F ,  Hash[l-1].F*power(p1 , r-l+1)) ;
+              ans.S.F = sub(ans.S.F ,  Hash[l-1].S.F*power(p2 , r-l+1)) ;
+              ans.S.S = sub(ans.S.S ,  Hash[l-1].S.S*power(p3 , r-l+1)) ;
+           }
+              return ans;
+}
+
+
+bool ok(int len){
+
+      int l= 0  , cnt = 0 ;
+
+      pair<int,pair<int,int>>  val =  calc_hash(0 , len-1);
+
+      for (int i = 0 ; i+len-1 < n ; ++i){
+               if (calc_hash(i , i+len-1) == val ){
+                             i = i+len-1;
+                             cnt++;
+               }
+      }
+
+      return cnt>=k;
+
+}
+
+
+void lets_start_as_we_never_failed(){
+
+
+            cin>>n>>k>>k;
+
+            cin>>x;
+
+
+
+            //od=random_int(1e9,1e15);
+
+            pre_hash();
+
+            int l = 1 , h  = n , ans = 0;
+            while(l<=h){
+                            int md =(l+h)/2;
+
+                            if (ok(md)){
+                                     ans =md;
+                                     l=md+1;
+                            }
+                            else {
+                                    h=md-1;
+                            }
+
+
+            }
+
+            cout<<ans<<"\n";
+
+}
+// 2 :14
+signed main() {
+
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);      cout.tie(0);
+
+    int tc=1;
+    cin>>tc;
+    while(tc--)
+        lets_start_as_we_never_failed();
+
+}
