@@ -50,6 +50,22 @@ struct Trie {
         }
         return ret ;
     }
+    int max_xor(int val)  { //  assuming there are values that u must choose one of them >>  as we walk full path
+        int idx= 0 , ret = 0   ;
+        for (int i = mxBits ; i>=0 ; --i) {
+            int bit = ((1LL << i )&val) ?1 : 0;
+            int mv = nodes[idx][1-bit] ;
+ 
+            if (nodes[idx][1-bit] and nodes[mv].sz)  {  // bit^bit
+                idx= mv;
+                ret+= (1LL << i ) ;
+            }else   {
+                idx = nodes[idx][bit] ;
+            }
+ 
+        }
+        return ret ;
+    }
 
 } ;
 
