@@ -1,0 +1,89 @@
+const int N  = 1e5+3;
+ 
+int n  , m  , id = 1;
+ 
+set<pair<int , int >  >  s;
+vector<pair<int,pair<int,int>  >  > path ;
+vector < int> vis2(N ) , vis(N) , g[N] ;
+vector < int>  pos (N)  ;
+ 
+int  mark  (int nd , int idx  ){       // path compresion 
+ 
+ 
+ 
+ 
+ 
+    if (  idx  < pos[nd])
+        return  idx;
+ 
+    int u   = path[idx].F , v   = path[idx] .S.F;
+    s.insert({min(u,v) , max(u ,v)}) ;
+ 
+    if (idx ==  pos[nd]) {
+        return idx;
+    }
+ 
+ 
+    return path[idx].S.S =  mark  (nd  , min(idx-1 , path[idx].S.S))  ;
+ 
+}
+ 
+void dfs( int nd   , int par ){
+ 
+    if  (vis[nd]  and vis2[nd]!=2){           // O(N+M)  + time of discover your cur cycle
+        return   ;
+    }
+    vis[nd] ++;
+    if (vis2[nd]==2){
+ 
+        mark(nd, path.size()  -1);
+ 
+       /* cout<<nd<<"  "<<pos[nd]<< "       <>   ";
+        for (auto &[u, pr] :  path){
+                   cout<<u <<" " <<pr.F<< " || ";
+ 
+        }
+        cout<<"\n";*/
+ 
+        return  ;
+    }
+ 
+    yala :;
+ 
+ 
+ 
+ 
+ 
+    for (auto &ch   : g[nd]){
+        if (ch == par)
+            continue ;
+        vis2[ch]++;
+ 
+ 
+        pos[nd] =path.size()  ;
+ 
+        path.push_back({nd, {ch, path.size()}});
+ 
+        dfs(ch  , nd) ;
+ 
+        vis2[ch] -- ;
+        path.pop_back() ;
+ 
+ 
+    }
+ 
+}
+ 
+ 
+ 
+void  init(){
+    for (int i  = 0 ; i <= n ; ++i){
+        g[i].clear();
+        vis[i] =  tamam[i]  = vis2[i]  =   0 ;
+        pos[i]  = -1;
+    }
+    path.clear();
+    s.clear();
+ 
+ 
+}
