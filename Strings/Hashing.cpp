@@ -106,8 +106,8 @@ struct Hashing {
                 pair<int ,int>  ans  = Hash[r];
 
                 if (l){
-                    ans.F = sub(ans.F ,  Hash[l-1].F*power(p1 , r-l+1)) ;
-                    ans.S = sub(ans.S ,  Hash[l-1].S*power(p2 , r-l+1)) ;;
+                    ans.F = sub(ans.F ,  Hash[l-1].F*pw1[r-l+1]) ;
+                    ans.S = sub(ans.S ,  Hash[l-1].S*pw2[r-l+1]) ;;
                 }
                     return ans;
 }
@@ -116,8 +116,8 @@ struct Hashing {
                 pair<int,int>  ans  = re_Hash[l] ;
 
                 if (r!=n-1){
-                        ans.F=sub(ans.F , re_Hash[r+1].F*power(p1 , r-l+1)) ;
-                        ans.S=sub(ans.S , re_Hash[r+1].S*power(p2 , r-l+1)) ;
+                        ans.F=sub(ans.F , re_Hash[r+1].F*pw1[r-l+1]) ;
+                        ans.S=sub(ans.S , re_Hash[r+1].S*pw2[r-l+1]) ;
                 }
                 return ans ;
 
