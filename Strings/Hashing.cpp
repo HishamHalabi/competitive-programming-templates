@@ -7,41 +7,7 @@ int sub(int a , int b   ){
 }
 
 vector<int > pw1(N) , pw2(N) ;
-#define ll int
 
-ll random_int(ll l , ll r){
-    static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
-    return uniform_int_distribution<ll>(l,r)(rng);
-}
-bool prime(int n) {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-
-    // Check if n is divisible by 2 or 3
-    if (n % 2 == 0 || n % 3 == 0) return false;
-
-    // Iterate through all numbers from 5 to the square root of n
-    for (int i = 5; i * i <= n; i += 6) {
-        if (n % i == 0 || n % (i + 2) == 0)
-            return false;
-    }
-
-    return true;
-}
-void init_hash(){
-            p1=  random_int(1,1e8);
-            p2=random_int(1, 1e8);
-
-            mod  = random_int(1e9,2e9);
-
-            int cnt = 3000 ;
-            while(!prime(mod) and cnt--){
-                    mod=random_int(1e9 , 2e9);
-            }
-            if (!prime(mod))
-                     mod=  1e9+7;
-
-}
 struct Hashing {
         vector<pair<int,int> >Hash , re_Hash ;
 
