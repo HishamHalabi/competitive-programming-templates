@@ -146,6 +146,31 @@ ll nPr(ll n,ll r, ll mod){
 }
 const int N =6e5+7 ,  mod =  998244353  , m = mod ;
 
+// Extended Euclidean Algorithm
+long long modInverse(long long b, long long m) {
+    long long x, y;
+    long long g = __gcd(b, m);
+    if (g != 1) return -1; // inverse doesn't exist
+
+    long long a = b, mod = m;
+    long long u = 1, v = 0;
+    while (m) {
+        long long t = a / m;
+        a -= t * m; swap(a, m);
+        u -= t * v; swap(u, v);
+    }
+    return (u + mod) % mod;
+}
+
+// Compute a / b % m
+long long divideMod(long long a, long long b, long long m) {
+    long long inv = modInverse(b, m);
+    if (inv == -1) {
+        throw std::invalid_argument("No inverse exists");
+    }
+    return (a * inv) % m;
+}
+
 int factorial[N];
 int power(int a, int b){
 
@@ -202,7 +227,7 @@ void init(){
 
 };
 ///geotrical sequence           ////////////////////
-sum =  (1 - r^n)   / (1-r)  
+sum =  a*(1 - r^n)   / (1-r)  
 /////////mathmetical sequecne ///////////////
 sum   = n/2(a1  + an)
 ////////////////////////////catlan Numbres // 
