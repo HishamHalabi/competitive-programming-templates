@@ -201,6 +201,10 @@ void init(){
 
 
 };
+///geotrical sequence           ////////////////////
+sum =  (1 - r^n)   / (1-r)  
+/////////mathmetical sequecne ///////////////
+sum   = n/2(a1  + an)
 ////////////////////////////catlan Numbres // 
 any balanced segence of len N > > full 01 tree of n+1 leafes and vice versa
 n places >> max n-1 blancd segqunces
