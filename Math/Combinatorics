@@ -74,7 +74,7 @@ int mod_inv(int n){        //affected by prime mods
 }
 
 
-
+//nCr  ,  nPr ,  n+r-1Cr
 int nCr(int n, int a){
         if(n==a)return 1 ; 
         if (mod == 2) {
