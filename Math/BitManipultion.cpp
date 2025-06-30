@@ -1,4 +1,44 @@
 
+
+//taken from chat 8:04   6/30/25
+long long rangeOR(long long L, long long R) {
+    long long res = 0;
+    for (int i = 63; i >= 0; --i) {
+        long long mask = 1LL << i;
+        if ((L & mask) != (R & mask)) {
+            res |= (1LL << (i + 1)) - 1;
+            break;
+        } else {
+            res |= (L & mask);
+        }
+    }
+    return res;
+}
+
+//taken from chat 8:04   6/30/25
+long long rangeAND(long long L, long long R) {
+    int shift = 0;
+    while (L < R) {
+        L >>= 1;
+        R >>= 1;
+        shift++;
+    }
+    return L << shift;
+}
+
+//can be proved by induction
+int XORtillN(int n) {
+    if(n % 4 == 1) return 1;
+    if(n % 4 == 2) return n+1;
+    if(n % 4 == 3) return 0;
+    return n;
+}
+
+int findRangeXOR(int l, int r){
+    return XORtillN(l-1) ^ XORtillN(r);
+}
+
+
 void Set(int &mask , int bitIndx , int val){
   if (!val)
     mask = mask & ~(1LL << bitIndx);
