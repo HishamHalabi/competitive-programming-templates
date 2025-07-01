@@ -6,6 +6,7 @@
       4.Perfect Info  >>  i know all states
       5.finite
 
+
       solution  ?? 
           winining  && losing states  , more will be for each type
 
@@ -43,6 +44,9 @@ Games  >>
 
                  Here we try to simplif game as much as we can before we go 
                 Note we only care that two  players play as one player regardles change rules by state
+
+
+         considering all grundy childs are not always possible so consider pattern  , imagine subpart is true  prove by induction
 
              
       other
