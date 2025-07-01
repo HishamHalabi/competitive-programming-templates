@@ -1,0 +1,49 @@
+      properties  to try to solve by 1 or 2
+      
+      1.2players
+      2.determenstic >> move lead to know state ,  im not taking نرد or propalties
+      3.sequentional >> one one 
+      4.Perfect Info  >>  i know all states
+      5.finite
+
+      solution  ?? 
+          winining  && losing states  , more will be for each type
+
+Games  >> 
+     General techniques     
+          trying to find intersting facts >>  best strategy (odd, even  , change               of sum)
+          
+           can we dp 
+
+     Impartial Games  (two players with the same moves  with same goal)
+             so far it's part of gen games so we will add more
+
+           Nim Game >>  xor 1 win  , lose            , having operation like add becuase wining can undo
+           Misere Game >> (who cant win)  : 
+                If all heaps are size 1:
+
+	          If all heaps are size 1:
+
+                       If there are an even number of 1’s → winning.
+ 
+                        If there are an odd number of 1’s → losing.
+
+                If at least one heap ≥ 2, play like normal Nim:
+
+                        XOR = 0 → losing.
+
+                        XOR ≠ 0 → winning
+
+          Grundy Theorem if we have game consisit of sub games
+                  he key condition for Sprague-Grundy theorem to apply is:
+                  The overall game is a disjunct union of independent subgames.
+                  for each game we calc grundy Number and aplly normal Nim 
+
+                what if the game transtions consist of subGames of same type(problem)  (xor them  and the reuslt is the grundy num ! that shoul be returned if i mixed them in one state)
+
+                 Here we try to simplif game as much as we can before we go 
+                Note we only care that two  players play as one player regardles change rules by state
+
+             
+      other
+             hard  , we won't consider
