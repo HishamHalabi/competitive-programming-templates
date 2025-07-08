@@ -85,7 +85,8 @@ struct segtree{
     }
 
     int  operation (int  a , int  b , int x){
-            return b;
+             if (!op[x]) return b; 
+                return b;
     }
 
     void apply(int & a ,int  b , int x){
