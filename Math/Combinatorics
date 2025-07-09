@@ -60,7 +60,7 @@ ll nPr(ll n,ll r, ll mod){
 }
 
 
-const int N =6e5+7 ,  mod =  998244353  , m = mod ;
+const int N =6e5+7 ,  mod =  1e9+7  , m = mod ;
 int factorial[N];
 
 int calc[2*N]  ;
@@ -76,7 +76,7 @@ int mod_inv(int n){        //affected by prime mods
 
 //nCr  ,  nPr ,  n+r-1Cr
 int nCr(int n, int a){
-        if(n==a)return 1 ; 
+        if(n==a ||  a == 0)return 1 ; 
         if (mod == 2) {
                    return ((n & a) == a) ? 1 : 0;
         }
