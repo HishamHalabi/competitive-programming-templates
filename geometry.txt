@@ -162,6 +162,35 @@ int distanceSquared(int x1, int y1, int x2, int y2) {
     return dx * dx + dy * dy; // Returns the squared distance to avoid floating-point operations
 }
 
+//IS point on line  
+bool isPointOnLine(int px, int py, int x1, int y1, int x2, int y2) {
+    // Cross product of vectors (x2 - x1, y2 - y1) and (px - x1, py - y1)
+    int cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1);
+    return cross == 0;
+}
+
+
+bool isValidPolygon(const vector<pair<int, int>>& points) {
+    int k = points.size();
+
+    // Check all triplets (a, b, c): no 3 points should be collinear
+    for (int i = 0; i < k; ++i) {
+        for (int j = i + 1; j < k; ++j) {
+            for (int l = 0; l < k; ++l) {
+                if (l == i || l == j) continue;
+                if (isPointOnLine(points[l].first, points[l].second,
+                                  points[i].first, points[i].second,
+                                  points[j].first, points[j].second)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+
 // 2. Check if a Point is Inside a Circle
 bool isPointInCircle(int px, int py, int cx, int cy, int r) {
     return distanceSquared(px, py, cx, cy) <= r * r;
