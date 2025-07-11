@@ -23,8 +23,11 @@ vector<vector<int> >  g(N)  ,  comp(N)  ;
 
 /*
 
-   SCC , bridges for dir and un dir
-   art abd biconnected for undir
+   SCC for dir , undir
+   
+   art , bridges    ,  biconnected for undir
+
+   biconnected commponet >> compenent that they can reach others ... i think
 
 
 */
