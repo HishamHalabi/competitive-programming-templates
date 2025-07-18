@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>+
+using namespace std;
+#define  int long long
+#define all(a) a.begin() , a.end()
+#define ld long double
+
+/*
+      i >> pi   >> graph i want transform it to simpler one 
+        
+            swaping two at same cycle give us two compenents 
+            else give us one union comp
+        
+     so 
+      i  = pi  >>   n   -  cycles
+      >>  sum   of  (cycles -1)/ 2
+     
+*/
+void ECPC()  {
+    int n ;
+    cin >> n ;
+
+    vector  <vector  <int >> g(n+1)  ;
+
+    vector < int > a(n+1) ;
+    for (int  i = 1 ; i  <=n  ; ++i)  {
+              cin >> a[i] ;
+              g[i].push_back(a[i]) ;
+    }
+
+
+    vector  < int > id(n+1 , -1) ;
+
+    int ans = 0 ;
+    for (int  i =1 ;   i<=n ; ++i) {
+              if (~id[i]) continue ;
+
+              int nd = i,sz=0   ;
+              while(id[nd]  == -1)  {
+                     id[nd] = i ;
+                     nd = g[nd][0]  ;
+                     sz++ ;
+              }
+              ans+= (sz-1)/2;
+    }
+
+    cout<<ans<<"\n";
+
+
+
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(0) ;
+    cin.tie(0 ) ;
+
+    int tc;
+    cin >> tc;
+    while(tc--)
+    ECPC() ;
+
+
+}
+
