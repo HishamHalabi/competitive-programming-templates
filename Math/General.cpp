@@ -51,6 +51,20 @@ int Cat(int n) { // nCr(2*n,n) / (n+1)
 /////////////////////////////////////////////
 ////////////////////Pascal Triangle/////////////////////////////////////
 a[r][col] =  RcCol            0baesed
+
+Pascal triangle  diagnoals represent prefix of prefix .....
+
+1 1 1 1 
+1 2 3 4
+1 3 6 10
+1 4 .... 
+>>
+     1
+   1  1
+  1 2  1
+ 1 3 3  1
+1 4 6 4  1
+
 //////////////////////////////Fibonaci//////////////////////
 Example: x6
 x6 =  
