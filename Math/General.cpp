@@ -11,7 +11,7 @@ n places >> max n-1 blancd segqunces
 The Catalan number  
 $C_n$  is the solution for
 
-Number of correct bracket sequence consisting of   
+Number of correct bracket sequence consisting of         (only sequences that follow binry tree and that;s form best (i dont rember))
 $n$  opening and  
 $n$  closing brackets.     >> with n+1 places
 The number of rooted full binary trees with  
