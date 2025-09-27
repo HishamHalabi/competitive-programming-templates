@@ -1,14 +1,56 @@
-    bitset<N> sums(1);          //  N up to 2e8
-    for (auto sz: cur)
-        sums |= sums << sz;
- 
-    int mx = 0;
-    for (int i = 0; i < N; ++i)
-    {
-           if (sums[i])
-           {
-               int v1=i;
-               mx =max(mx , v1*(sum-v1));
-           }
-    }
- 
+Bitsets   
+    bitset<365> is a binary number with 365
+ bits available, and it supports most of binary operations. The code above changes into simple:
+
+code
+Some functions differ, e.g. x.count() instead of __builtin_popcount(x) but it's only more convenient. You can read and print binary numbers, construct a bitset from int or string bitset<100> a(17); bitset<100> b("1010");. You can even access particular bits with b[i]. Read more in C++ reference https://en.cppreference.com/w/cpp/utility/bitset.
+
+Note that the size of the bitset must be a constant number. You can't read n
+ and then declare bitset<n> john;. If n
+ is up to 100
+, just create bitset<100>.
+
+
+bitset<N> b;
+int next = b._Find_next(i);
+It searches for the first bit set to 1 after position i.
+
+If no such bit exists, it returns b.size() (i.e., an out-of-range value).
+
+
+   set(pos) → Sets bit at pos to 1
+
+   reset(pos) → Sets bit at pos to 0
+
+   flip(pos) → Toggles bit at pos
+
+
+.count() → Number of bits set to 1
+
+.any() → True if any bit is set
+
+.none() → True if all bits are 0
+
+.size() → Total number of bits
+
+
+
+Operator	Description
+&	Bitwise AND
+`	`	Bitwise OR
+^	Bitwise XOR
+~	Bitwise NOT
+<<	Left shift
+>>	Right shift
+
+
+
+Operation	Time Complexity	Notes
+set(i), reset(i), flip(i)	O(1)	Direct access to a single bit
+test(i), operator[](i)	O(1)	Fast lookup of individual bits
+count()	O(n)	Counts all bits set to 1; scans entire bitset
+any(), none(), all()	O(n)	Checks all bits; may short-circuit early
+Bitwise ops (&, `	,^,~`)	O(n / w)	Operates in chunks of word size w (usually 32 or 64 bits)2
+Shift ops (<<, >>)	O(n / w)	Also chunked by word size
+.to_ulong() / .to_ullong()	O(n)	Converts bitset to integer; scans bits
+_Find_first() / _Find_next(i)	O(n / w)	Efficient scan for set bits using word-level operations
