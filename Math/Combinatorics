@@ -9,17 +9,6 @@ int sub(int a , int b){ // a ,b maybe negative
                return (a%mod - b%mod + mod) % mod;
 }
 
-int power(int a, int b){
-
-         if(b < 0) return 1;
-         int res = 1;
-         while(b){
-                  if(b & 1) res = res * a % mod;
-                  a = a * a % mod;
-                  b >>= 1;
-         }
-         return res;
-}
 
 //Prime Mods except for mod =2   
 ll modInverse(ll b, ll mod) {
@@ -61,9 +50,22 @@ ll nPr(ll n,ll r, ll mod){
 
 
 const int N =6e5+7 ,  mod =  1e9+7  , m = mod ;
-int factorial[N];
 
-int calc[2*N]  ;
+int factorial[N] ,   calc[2*N]  ;
+
+int power(int a, int b){
+
+         if(b < 0) return 1;
+         int res = 1;
+         while(b){
+                  if(b & 1) res = res * a % mod;
+                  a = a * a % mod;
+                  b >>= 1;
+         }
+         return res;
+}
+
+
 int mod_inv(int n){        //affected by prime mods
          int &ret= calc[n] ;
          if(ret!=-1)
@@ -97,5 +99,3 @@ void init(){
                  calc[i] = -1  ;
         }
 }
-
-
