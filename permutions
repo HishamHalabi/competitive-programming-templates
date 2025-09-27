@@ -13,6 +13,10 @@ using namespace std;
      so 
       i  = pi  >>   n   -  cycles
       >>  sum   of  (cycles -1)/ 2
+
+
+      sorting permution graph is same for non perm but imagine some specific places 
+if only adjancet swaps >>  for each v cost+= n vals that shoud be after me (in perm  > )
      
 */
 void ECPC()  {
