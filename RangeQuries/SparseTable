@@ -12,7 +12,7 @@ using namespace std  ;
 #define S second
 
 
-const int N  =  3e5+7  , mxlog = 35 ;
+const int N  =  3e5+7  , mxlog = 25 ;
 
 int st[mxlog+1][N]  ,a[N] , lg[N]  , n   ;
 int calc (int v1 , int v2){
