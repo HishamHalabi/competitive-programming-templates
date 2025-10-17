@@ -1,0 +1,18 @@
+l   l r  l r r
+ ///wheneve meet segment inside another delete it  ,  this do the same function
+     vector < pair < int, int >>  prs  , segs;
+      for (int   i = 0 ; i  < m ;  ++i) {
+                 int  l ,  r;
+                 cin >> l  >> r;
+                 prs.push_back({ l  ,r}) ;
+      }
+      sort(all(prs));
+
+
+      for (auto [ l ,r]  :  prs)  {
+               if (segs.empty() || r  > segs.back().second ) {
+                    segs.push_back({    l ,r}) ;
+                   // mx[l] = r;
+               }
+      }
+
