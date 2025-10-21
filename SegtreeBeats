@@ -1,5 +1,8 @@
-//Add(l , r, v)  max(l , r,v)  min( l ,r,v)  Sum( l ,r)    >> l , r are inclusive
+//Add(l , r, v)  max(l , r,v)  min( l ,r,v)    >> l , r are inclusive
 #define int long long
+
+#include <bits/stdc++.h>
+using namespace std;
 
 struct Node {
     long long sum;
@@ -14,7 +17,7 @@ struct Node {
           cntMax(0), cntMin(0), add(0) {}
 };
 
-struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
+struct SegmentTreeBeats {
     int n;
     vector<Node> t;
 
@@ -47,7 +50,7 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         build(a, 1, 0, n-1);
     }
 
-    // apply range add of x to node v representing segment of length len
+    // ====== Core push/pull helpers ======
     void apply_add(int v, long long x, int len) {
         auto &nd = t[v];
         nd.sum += x * len;
@@ -58,22 +61,20 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         nd.add += x;
     }
 
-    // push a chmin operation to node v (set all values > x down to x) — used when we know x < max1
     void push_chmin_node(int v, long long x) {
         auto &nd = t[v];
         if (x >= nd.max1) return;
         nd.sum -= 1LL * (nd.max1 - x) * nd.cntMax;
         nd.max1 = x;
-        if (nd.min1 > nd.max1) nd.min1 = nd.max1; // maintain consistency
+        if (nd.min1 > nd.max1) nd.min1 = nd.max1;
     }
 
-    // push a chmax operation to node v (set all values < x up to x) — used when x > min1
     void push_chmax_node(int v, long long x) {
         auto &nd = t[v];
         if (x <= nd.min1) return;
         nd.sum += 1LL * (x - nd.min1) * nd.cntMin;
         nd.min1 = x;
-        if (nd.max1 < nd.min1) nd.max1 = nd.min1; // maintain consistency
+        if (nd.max1 < nd.min1) nd.max1 = nd.min1;
     }
 
     void push_down(int v, int l, int r) {
@@ -85,18 +86,15 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         int m = (l + r) >> 1;
         int lc = v<<1, rc = v<<1|1;
 
-        // first propagate add
         if (nd.add != 0) {
             apply_add(lc, nd.add, m - l + 1);
             apply_add(rc, nd.add, r - m);
             nd.add = 0;
         }
 
-        // propagate chmin from parent to children if needed
         if (t[lc].max1 > nd.max1) push_chmin_node(lc, nd.max1);
         if (t[rc].max1 > nd.max1) push_chmin_node(rc, nd.max1);
 
-        // propagate chmax from parent to children if needed
         if (t[lc].min1 < nd.min1) push_chmax_node(lc, nd.min1);
         if (t[rc].min1 < nd.min1) push_chmax_node(rc, nd.min1);
     }
@@ -136,7 +134,7 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         }
     }
 
-    // range chmin: set a[i] = min(a[i], x) on [ql,qr]
+    // ====== Range Updates ======
     void range_chmin(int v, int l, int r, int ql, int qr, long long x) {
         if (r < ql || l > qr || t[v].max1 <= x) return;
         if (ql <= l && r <= qr && t[v].max2 < x) {
@@ -150,7 +148,6 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         pull(v);
     }
 
-    // range chmax: set a[i] = max(a[i], x) on [ql,qr]
     void range_chmax(int v, int l, int r, int ql, int qr, long long x) {
         if (r < ql || l > qr || t[v].min1 >= x) return;
         if (ql <= l && r <= qr && t[v].min2 > x) {
@@ -164,7 +161,6 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         pull(v);
     }
 
-    // range add
     void range_add(int v, int l, int r, int ql, int qr, long long x) {
         if (r < ql || l > qr) return;
         if (ql <= l && r <= qr) {
@@ -178,6 +174,7 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         pull(v);
     }
 
+    // ====== Range Queries ======
     long long range_sum(int v, int l, int r, int ql, int qr) {
         if (r < ql || l > qr) return 0;
         if (ql <= l && r <= qr) return t[v].sum;
@@ -186,7 +183,56 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         return range_sum(v<<1, l, m, ql, qr) + range_sum(v<<1|1, m+1, r, ql, qr);
     }
 
-    // point get
+    long long range_max(int v, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) return LLONG_MIN;
+        if (ql <= l && r <= qr) return t[v].max1;
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        return max(range_max(v<<1, l, m, ql, qr), range_max(v<<1|1, m+1, r, ql, qr));
+    }
+
+    long long range_min(int v, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) return LLONG_MAX;
+        if (ql <= l && r <= qr) return t[v].min1;
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        return min(range_min(v<<1, l, m, ql, qr), range_min(v<<1|1, m+1, r, ql, qr));
+    }
+
+    pair<long long,int> range_max_freq(int v, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) return {LLONG_MIN, 0};
+        if (ql <= l && r <= qr) return {t[v].max1, t[v].cntMax};
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        auto L = range_max_freq(v<<1, l, m, ql, qr);
+        auto R = range_max_freq(v<<1|1, m+1, r, ql, qr);
+        if (L.first == R.first) return {L.first, L.second + R.second};
+        return (L.first > R.first ? L : R);
+    }
+
+    pair<long long,int> range_min_freq(int v, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) return {LLONG_MAX, 0};
+        if (ql <= l && r <= qr) return {t[v].min1, t[v].cntMin};
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        auto L = range_min_freq(v<<1, l, m, ql, qr);
+        auto R = range_min_freq(v<<1|1, m+1, r, ql, qr);
+        if (L.first == R.first) return {L.first, L.second + R.second};
+        return (L.first < R.first ? L : R);
+    }
+
+    int count_equal(int v, int l, int r, int ql, int qr, long long x) {
+        if (r < ql || l > qr) return 0;
+        if (ql <= l && r <= qr) {
+            if (x == t[v].max1) return t[v].cntMax;
+            if (x == t[v].min1) return t[v].cntMin;
+            return 0; // only fast for min/max queries
+        }
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        return count_equal(v<<1, l, m, ql, qr, x) + count_equal(v<<1|1, m+1, r, ql, qr, x);
+    }
+
     long long point_get(int v, int l, int r, int idx) {
         if (l == r) return t[v].sum;
         push_down(v, l, r);
@@ -195,10 +241,17 @@ struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
         return point_get(v<<1|1, m+1, r, idx);
     }
 
-    // wrappers (inclusive ranges)           >> l , r are inclusive
+    // ====== User-friendly wrappers ======
     void chmin(int l, int r, long long x) { if (l>r) return; range_chmin(1, 0, n-1, l, r, x); }
     void chmax(int l, int r, long long x) { if (l>r) return; range_chmax(1, 0, n-1, l, r, x); }
     void add(int l, int r, long long x)   { if (l>r) return; range_add(1, 0, n-1, l, r, x); }
     long long sum(int l, int r)           { if (l>r) return 0; return range_sum(1, 0, n-1, l, r); }
     long long get(int i)                  { return point_get(1, 0, n-1, i); }
+    long long rangeMax(int l, int r)      { return range_max(1, 0, n-1, l, r); }
+    long long rangeMin(int l, int r)      { return range_min(1, 0, n-1, l, r); }
+    long long rangeDiff(int l, int r)     { return rangeMax(l, r) - rangeMin(l, r); }
+    double rangeAvg(int l, int r)         { return 1.0 * sum(l, r) / (r - l + 1); }
+    pair<long long,int> rangeMaxFreq(int l, int r) { return range_max_freq(1, 0, n-1, l, r); }
+    pair<long long,int> rangeMinFreq(int l, int r) { return range_min_freq(1, 0, n-1, l, r); }
+    int countEqual(int l, int r, long long x) { return count_equal(1, 0, n-1, l, r, x); }
 };
