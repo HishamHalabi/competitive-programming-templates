@@ -1,0 +1,204 @@
+//Add(l , r, v)  max(l , r,v)  min( l ,r,v)  Sum( l ,r)    >> l , r are inclusive
+#define int long long
+
+struct Node {
+    long long sum;
+    long long max1, max2;
+    long long min1, min2;
+    int cntMax, cntMin;
+    long long add;
+    Node()
+        : sum(0),
+          max1(LLONG_MIN), max2(LLONG_MIN),
+          min1(LLONG_MAX), min2(LLONG_MAX),
+          cntMax(0), cntMin(0), add(0) {}
+};
+
+struct SegmentTreeBeats {  ///l ,  r inclussssssssssssive
+    int n;
+    vector<Node> t;
+
+    SegmentTreeBeats(int n_ = 0) { init(n_); }
+
+    void init(int n_) {
+        n = n_;
+        if (n == 0) return;
+        t.assign(4 * n, Node());
+    }
+
+    void build(const vector<long long> &a, int v, int l, int r) {
+        if (l == r) {
+            long long x = a[l];
+            auto &nd = t[v];
+            nd.sum = x;
+            nd.max1 = x; nd.max2 = LLONG_MIN; nd.cntMax = 1;
+            nd.min1 = x; nd.min2 = LLONG_MAX; nd.cntMin = 1;
+            nd.add = 0;
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(a, v<<1, l, m);
+        build(a, v<<1|1, m+1, r);
+        pull(v);
+    }
+
+    void build(const vector<long long> &a) {
+        if (n == 0) return;
+        build(a, 1, 0, n-1);
+    }
+
+    // apply range add of x to node v representing segment of length len
+    void apply_add(int v, long long x, int len) {
+        auto &nd = t[v];
+        nd.sum += x * len;
+        if (nd.max1 != LLONG_MIN) nd.max1 += x;
+        if (nd.max2 != LLONG_MIN) nd.max2 += x;
+        if (nd.min1 != LLONG_MAX) nd.min1 += x;
+        if (nd.min2 != LLONG_MAX) nd.min2 += x;
+        nd.add += x;
+    }
+
+    // push a chmin operation to node v (set all values > x down to x) — used when we know x < max1
+    void push_chmin_node(int v, long long x) {
+        auto &nd = t[v];
+        if (x >= nd.max1) return;
+        nd.sum -= 1LL * (nd.max1 - x) * nd.cntMax;
+        nd.max1 = x;
+        if (nd.min1 > nd.max1) nd.min1 = nd.max1; // maintain consistency
+    }
+
+    // push a chmax operation to node v (set all values < x up to x) — used when x > min1
+    void push_chmax_node(int v, long long x) {
+        auto &nd = t[v];
+        if (x <= nd.min1) return;
+        nd.sum += 1LL * (x - nd.min1) * nd.cntMin;
+        nd.min1 = x;
+        if (nd.max1 < nd.min1) nd.max1 = nd.min1; // maintain consistency
+    }
+
+    void push_down(int v, int l, int r) {
+        auto &nd = t[v];
+        if (l == r) {
+            nd.add = 0;
+            return;
+        }
+        int m = (l + r) >> 1;
+        int lc = v<<1, rc = v<<1|1;
+
+        // first propagate add
+        if (nd.add != 0) {
+            apply_add(lc, nd.add, m - l + 1);
+            apply_add(rc, nd.add, r - m);
+            nd.add = 0;
+        }
+
+        // propagate chmin from parent to children if needed
+        if (t[lc].max1 > nd.max1) push_chmin_node(lc, nd.max1);
+        if (t[rc].max1 > nd.max1) push_chmin_node(rc, nd.max1);
+
+        // propagate chmax from parent to children if needed
+        if (t[lc].min1 < nd.min1) push_chmax_node(lc, nd.min1);
+        if (t[rc].min1 < nd.min1) push_chmax_node(rc, nd.min1);
+    }
+
+    void pull(int v) {
+        auto &a = t[v<<1], &b = t[v<<1|1], &c = t[v];
+        c.sum = a.sum + b.sum;
+
+        // max
+        if (a.max1 == b.max1) {
+            c.max1 = a.max1;
+            c.cntMax = a.cntMax + b.cntMax;
+            c.max2 = max(a.max2, b.max2);
+        } else if (a.max1 > b.max1) {
+            c.max1 = a.max1;
+            c.cntMax = a.cntMax;
+            c.max2 = max(a.max2, b.max1);
+        } else {
+            c.max1 = b.max1;
+            c.cntMax = b.cntMax;
+            c.max2 = max(a.max1, b.max2);
+        }
+
+        // min
+        if (a.min1 == b.min1) {
+            c.min1 = a.min1;
+            c.cntMin = a.cntMin + b.cntMin;
+            c.min2 = min(a.min2, b.min2);
+        } else if (a.min1 < b.min1) {
+            c.min1 = a.min1;
+            c.cntMin = a.cntMin;
+            c.min2 = min(a.min2, b.min1);
+        } else {
+            c.min1 = b.min1;
+            c.cntMin = b.cntMin;
+            c.min2 = min(a.min1, b.min2);
+        }
+    }
+
+    // range chmin: set a[i] = min(a[i], x) on [ql,qr]
+    void range_chmin(int v, int l, int r, int ql, int qr, long long x) {
+        if (r < ql || l > qr || t[v].max1 <= x) return;
+        if (ql <= l && r <= qr && t[v].max2 < x) {
+            push_chmin_node(v, x);
+            return;
+        }
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        range_chmin(v<<1, l, m, ql, qr, x);
+        range_chmin(v<<1|1, m+1, r, ql, qr, x);
+        pull(v);
+    }
+
+    // range chmax: set a[i] = max(a[i], x) on [ql,qr]
+    void range_chmax(int v, int l, int r, int ql, int qr, long long x) {
+        if (r < ql || l > qr || t[v].min1 >= x) return;
+        if (ql <= l && r <= qr && t[v].min2 > x) {
+            push_chmax_node(v, x);
+            return;
+        }
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        range_chmax(v<<1, l, m, ql, qr, x);
+        range_chmax(v<<1|1, m+1, r, ql, qr, x);
+        pull(v);
+    }
+
+    // range add
+    void range_add(int v, int l, int r, int ql, int qr, long long x) {
+        if (r < ql || l > qr) return;
+        if (ql <= l && r <= qr) {
+            apply_add(v, x, r - l + 1);
+            return;
+        }
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        range_add(v<<1, l, m, ql, qr, x);
+        range_add(v<<1|1, m+1, r, ql, qr, x);
+        pull(v);
+    }
+
+    long long range_sum(int v, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) return 0;
+        if (ql <= l && r <= qr) return t[v].sum;
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        return range_sum(v<<1, l, m, ql, qr) + range_sum(v<<1|1, m+1, r, ql, qr);
+    }
+
+    // point get
+    long long point_get(int v, int l, int r, int idx) {
+        if (l == r) return t[v].sum;
+        push_down(v, l, r);
+        int m = (l + r) >> 1;
+        if (idx <= m) return point_get(v<<1, l, m, idx);
+        return point_get(v<<1|1, m+1, r, idx);
+    }
+
+    // wrappers (inclusive ranges)           >> l , r are inclusive
+    void chmin(int l, int r, long long x) { if (l>r) return; range_chmin(1, 0, n-1, l, r, x); }
+    void chmax(int l, int r, long long x) { if (l>r) return; range_chmax(1, 0, n-1, l, r, x); }
+    void add(int l, int r, long long x)   { if (l>r) return; range_add(1, 0, n-1, l, r, x); }
+    long long sum(int l, int r)           { if (l>r) return 0; return range_sum(1, 0, n-1, l, r); }
+    long long get(int i)                  { return point_get(1, 0, n-1, i); }
+};
