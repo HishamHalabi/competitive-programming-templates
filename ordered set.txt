@@ -1,3 +1,53 @@
+/*
+  access index i sorted
+
+
+
+
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+using namespace std;
+using namespace __gnu_pbds;
+
+// ordered_set template
+template <class T>
+using ordered_set = tree<
+    T,
+    null_type,
+    less<T>,
+    rb_tree_tag,
+    tree_order_statistics_node_update>;
+
+int main() {
+    ordered_set<int> s;
+    s.insert(10);
+    s.insert(20);
+    s.insert(30);
+    s.insert(40);
+
+    // ---- Access by index (0-based) ----
+    cout << *s.find_by_order(0) << "\n"; // 10
+    cout << *s.find_by_order(2) << "\n"; // 30
+
+    // ---- Find index of an element ----
+    cout << s.order_of_key(30) << "\n"; // 2 (elements < 30)
+    cout << s.order_of_key(35) << "\n"; // 3 (since 10,20,30 < 35)
+
+    return 0;
+}
+
+
+
+
+*/
+
+
+
+
+
+
+
+
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
@@ -163,3 +213,4 @@ int main() {
 }
 
  auto it =  s.lower_bound({c,numeric_limits<int>::min()});
+
