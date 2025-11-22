@@ -90,6 +90,22 @@ int nCr(int n, int a){
         return res;
 }
 
+/ Lucas theorem >> mod prime >> when values can be larger than mod , it need to nCr(v1,v2) v1,v2<=mod-1
+long long C(long long n, long long k) {
+    if (k > n) return 0;
+    long long res = 1;
+    while (n > 0 || k > 0) {
+        long long ni = n % mod;
+        long long ki = k % mod;
+        res = res * nCr(ni, ki) % mod;
+        if (res == 0) return 0;
+        n /= mod;
+        k /= mod;
+    }
+    return res;
+}
+ 
+
 void init(){
         factorial[0] = 1;
         calc[0] = -1 ;
