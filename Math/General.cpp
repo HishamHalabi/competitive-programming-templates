@@ -4,7 +4,7 @@ nPr  >> order matter
 n+r-1Cr  choosing r from n objects with  may take elemnt multiple times 
 
 a  b c  , f1 , f2 , f3  
-n difrent perm of arrays >> (f1+f2+f3)!/(f1!*f2!*f3!)   = (f1)/(f1!*f2!*f3!)  +  (f2)/(....) this save overflow (tk care up hv no fact)
+n difrent perm of arrays >> (f1+f2+f3)!/(f1!*f2!*f3!)   = (f1)/(f1!*f2!*f3!)  
   or  (the first furmula proofed from the second)
 n  = f1 +f2 +f3
 nCf1   * n-f1 C f2 ..... 
