@@ -1,0 +1,67 @@
+struct item {
+ int st = 0 , en = 0 , sum = 0 ,mx = 0 ;
+};
+struct segtree{
+    vector<item> val;
+
+    int sz =1;
+    item  NEUTRAl_ElEMENT   ;
+    segtree(int n){
+        while(sz<n)sz*=2;
+        val.resize(2*sz);
+       // NEUTRAl_ElEMENT  = { (int)-1e18 , (int)-1e18 , (int)-1e18 , (int)-1e18} ;
+    }
+
+
+    item merge(item& m1 ,item& m2 , int x=-1){
+           item ret  ;
+           ret.sum = m1.sum  + m2.sum ;
+           ret.st = max(m1.st , m1.sum   + m2.st) ;
+           ret.en = max(m2.en   , m2.sum  + m1.en)  ;
+           ret.mx = max(ret.st  ,  ret.en);
+           ret.mx = max(m1.mx , m2.mx) ;
+           ret.mx = max(ret.mx   ,  m1.en  + m2.st) ;
+           return ret;
+
+    }
+    item single(int v){
+       item ret =  {max(v,  0LL ) , max(v,  0LL )  , v  , max(v,  0LL ) } ;
+       return ret;
+    }
+    void Set(int i  ,int v,int x , int lx  ,int rx){
+        if (rx-lx==1){
+            val[x] =  single(v) ;
+            return  ;
+        }
+        int md  = (lx+rx)/2;
+        if (i<md)
+            Set(i  ,v ,  2*x+1 ,lx, md);
+        else
+            Set(i , v, 2*x+2 , md  , rx);
+
+        val[x] =merge(val[2*x+1] ,val[2*x+2], x) ;
+    }
+    void Set(int i  ,int v){
+        Set(i , v,  0 , 0 ,sz);
+    }
+    item calc(int  l , int r , int x , int lx , int rx ){
+          if (lx>=r ||rx<=l)
+            return NEUTRAl_ElEMENT;
+          if (lx>=l and rx<=r){
+            return val[x];
+          }
+          int md  = (lx+rx)/2;
+          item c1 =calc(l ,r  ,2*x+1  , lx  , md)  ,
+          c2 =calc(l ,r  ,2*x+2  ,md  , rx) ;
+        return merge(c1 ,
+             c2);
+
+
+    }
+    item calc(int l , int r   ){
+        return calc(l,r  , 0 , 0,sz);
+    }
+
+
+};
+
