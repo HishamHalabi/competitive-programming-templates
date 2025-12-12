@@ -1,0 +1,7 @@
+p(a&b) = p(a)  * p(b ) >> indepent
+
+E(x)   = xp(x) ... 
+
+E(x) =  next step in expermint  and solving this eq
+
+E(x  +  y +z)^2 =  E(x^2)  + E(y^2)  + E(z^2)  + 2*E(a*b)
