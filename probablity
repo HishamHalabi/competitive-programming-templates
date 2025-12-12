@@ -5,3 +5,13 @@ E(x)   = xp(x) ...
 E(x) =  next step in expermint  and solving this eq
 
 E(x  +  y +z)^2 =  E(x^2)  + E(y^2)  + E(z^2)  + 2*E(a*b)
+
+//////////////////////////////////////////
+Expected number of steps for success with good constant to achieve
+will
+
+repeating failure at some expirment is failur^n
+
+
+
+
