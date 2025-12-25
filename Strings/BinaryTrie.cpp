@@ -1,4 +1,6 @@
-
+/*
+use   int nd = newNode();    nodes[idx][c] = nd;  not !!!!!!!!!! nodes[idx][..] = newNode()
+    */
 
 struct Node {
     int sz = 0   ,  ends = 0 ;
@@ -28,7 +30,12 @@ struct Trie {
         int idx = 0 ;
         for   (int  i = mxBits ; i >= 0 ; i--) {
             int bit = ((1LL << i )&num) ?1 : 0;
-            if (!nodes[idx][bit]) nodes[idx][bit] = newNode()   ;
+            if (!nodes[idx][bit] {
+                
+                  int nd = newNode();
+                   nodes[idx][c] = nd;
+                
+            }
             idx = nodes[idx][bit]  ;
             nodes[idx].sz+=op   ;
         }
