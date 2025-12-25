@@ -1,3 +1,7 @@
+/*
+use   int nd = newNode();    nodes[idx][c] = nd;  not !!!!!!!!!! nodes[idx][..] = newNode()
+    */
+
 struct Node {
      int sz= 0  ,  //how many strings passed by this node
          ends =  0 ;  //  same but ends here
