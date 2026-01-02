@@ -1,170 +1,227 @@
+/*
 
-const int N = 5e5  ,  mod =1e9+7 , p1 =51 ;
+  keep propogate in its positoion here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! as it;s related to extend and acessing nullptr
 
-int sub(int a , int b   ){
-    return (a%mod - b%mod + mod)%mod;
-}
-
-vector<int > pw1(N)  ;
+*/
 
 
-int power(int a, int b){
 
-    if(b < 0) return 1;
-    int res = 1;
-    while(b){
-        if(b & 1) res = res * a % mod;
-        a = a * a % mod;
-        b >>= 1;
-    }
-    return    res;
-}
 
-struct custom_hash {
-    static uint64_t splitmix64(uint64_t x) {
-// http://xorshift.di.unimi.it/splitmix64.c
-        x += 0x9e3779b97f4a7c15;
-        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
-        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
-        return x ^ (x >> 31);
-    }
-    size_t operator()(uint64_t x) const {
-        static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
-        return splitmix64(x + FIXED_RANDOM);
-    }
-};
-unordered_map < int , int , custom_hash>  mp ;
-int mod_inv(int  b)  {
-    if (mp.find(b) != mp.end())return mp[b] ;
-    return  mp[b] = power(b   , mod-2)  ;
-}
-int Div  (int a , int b)  {
-    a%=mod ;
-    b%=mod;
-    return a  * mod_inv(b)%mod ;
-}
 
-int geo_seq(int p   , int  n)  {
-        int up = (power(p , n)-1 + mod)%mod ;
-        int down = (p-1+mod)%mod;
-        return Div(up , down) ;
-}
 
+
+
+
+
+/*
+   صل على محمد
+   if (u == Abdel-Aziz Mostafa )   love u <3 ;
+   دايما احلم ربنا المنان
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+//#define F first
+#define S second
 
 #define item int
 
+struct node {
+    bool op = 0;
+    int oper = 0;
+    int val =  0 ;
+    int lx = 0, rx = 0;
+    node *lft = nullptr, *rght = nullptr;
 
-struct segtree{
+    node() {}
 
+    void extend() {
+        if (rx - lx == 1) return;
 
+        int md = (lx + rx) / 2;
 
-    vector <int> op;
-    vector <int >  operations;
-    vector <item > val ;
-
-    int sz =1;
-    segtree(int n){         //empty
-        while(sz<n)sz*=2;
-        operations.resize(2*sz);
-        op.resize(2*sz);
-        val.resize(2*sz) ;
-
-        pw1[0] = 1 ;
-        for (int  i = 1 ; i <= 2*sz; ++i) {
-            pw1[i] = (pw1[i-1]*p1)%mod;
+        if (!lft) {
+            lft = new node();
+            lft->lx = lx;
+            lft->rx = md;
+        }
+        if (!rght) {
+            rght = new node();
+            rght->lx = md;
+            rght->rx = rx;
         }
     }
-    item Neutral_elemnt = -1 ;
-    item merge(item m1  ,  item m2 , int len){
-          if (m1 == -1)return m2 ;
-          if (m2 == -1) return m1;
-          item ret  = m1 ;
-          ret+= m2*pw1[len];
-          ret%=mod;
-          return ret;
+};
+
+struct segtree {
+    node *root;
+    int sz = 1;
+
+    item NeutralELement ;
+    segtree(int n) {
+        while (sz < n) sz <<= 1;
+        root = new node();
+        root->lx = 0;
+        root->rx = sz;
+        NeutralELement =-1e18 ;
     }
 
-    int  operation (int  a , int  b , int x){
-             if (!op[x]) return b; 
-                return b;
+    item merge(item a, item b) {
+        return max(a , b) ;
     }
 
-    void apply(int & a ,int  b , int x){
-          a=operation (a, b ,x);
-    }
-    void update(item & cur  , int  oper , int len){
-           cur =   (oper    *    geo_seq(p1   , len) )%mod;
-    }
-    void reset (int x , int  lx ,int rx){
-         if (rx- lx==1){
-             val[x] =0 ;
-             if (op[x])
-              update(val[x] , operations[x]  , 1) ;
-         }
-         else {
-            val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2 ) ;
-            if (op[x])
-              update(val[x] , operations[x] , rx-lx ) ;
-         }
+    int operation(int a, int b, bool op) {
+        if (!op) return b;
+        return a+b;
     }
 
-    void propagate(int x  , int lx  ,int rx){
-          if (rx-lx==1 || !op[x])
-            return  ;
-
-          apply(operations[2*x+1], operations[x] , 2*x+1) ;
-          apply(operations[2*x+2] ,operations[x] ,2*x+2) ;
-          op[2*x+1] =op[2*x+2] =1;
-          //clear op of node
-          op[x]=0;
-          //////////////////////
-          int md  =  (lx+rx)/2;
-          reset(2*x+1 , lx, md); //عشان هي جالها تغيرات والمفروض انها مرتبطه بتفيراتها وال تحتيها
-          reset(2*x+2, md, rx); //same
-          reset(x , lx, rx);    //same
-          ////////////////////////////////////////////////////
+    void apply(int &a, int b, bool op) {
+        a = operation(a, b, op);
     }
 
+    void update(node *nd) {
+         nd->val +=  nd->oper;
+    }
 
-    void change  (int  l , int r,int  oper , int x, int lx ,  int rx){
-        propagate(x , lx, rx);
-        if (rx<=l || lx>=r)
-            return  ;
-        if (lx >=l and rx<=r){
-                 apply( operations[x] , oper ,x);
-                 op[x]  = 1;
-                 reset(x  , lx , rx) ;
-                return ;
+    void reset(node *nd) {
+        if (nd->rx - nd->lx == 1) {
+            nd->val = 0 ;
+            if (nd->op) update(nd);
+            return;
         }
-        int md  = (lx+rx)/2;
-        change( l, r, oper, 2*x+1 ,lx, md);
-        change (l, r, oper ,  2*x+2 , md, rx);
 
-        val[x] = merge(val[2*x+1] , val[2*x+2] , (rx-lx)/2) ;
+        nd->extend() ;
+        nd->val = merge(nd->lft->val , nd->rght->val) ;
+        if (nd->op)
+               update(nd);
     }
-    void change (int  l ,int r ,int  oper){
-        change(l,r , oper,0 ,0,sz);
+
+    void propagate(node *nd) {
+        nd->extend();
+        if (!nd->op) return;
+        apply(nd->lft->oper, nd->oper, nd->lft->op);
+        apply(nd->rght->oper, nd->oper, nd->rght->op);
+
+        nd->lft->op = nd->rght->op = 1;
+
+        nd->op = 0;
+        nd->oper = 0;
+
+        reset(nd->lft);
+        reset(nd->rght);
+        reset(nd);
     }
-    item calc( int  l,  int r , int x , int lx , int rx ){
 
-          propagate(x,lx,rx);
-          if (lx>=r  ||rx<=l)
-            return  Neutral_elemnt ;
-          if (lx>= l  and rx<=r){
-            return val[x] ;
-          }
+    void change(int l, int r, int oper, node *nd) {
+
+       
 
 
-          int md  =  (lx+rx)/2;
-          item res1 = calc( l , r , 2*x+1 ,lx ,md);
-          item res2 = calc( l , r, 2*x+2 , md, rx) ;
-            int len1 = max(0LL, min(md, r) - max(lx, l));
-          return merge(res1 , res2 , len1);
+        if (nd->rx <= l || nd->lx >= r) return;
 
+
+        if (nd->lx >= l && nd->rx <= r) {
+            apply(nd->oper, oper, nd->op);
+            nd->op = 1;
+            reset(nd);
+            return;
+        }
+
+         propagate(nd) ;
+        change(l, r, oper, nd->lft);
+        change(l, r, oper, nd->rght);
+        nd->val = merge(nd->lft->val, nd->rght->val);
     }
-    item calc(int l,  int r){
-       return calc(l , r , 0, 0, sz) ;
+
+    void change(int l, int r, int oper) {
+        change(l, r, oper, root);
+    }
+
+    item calc (int l ,  int r , node * nd)  {
+
+
+         int lx = nd->lx , rx = nd->rx;
+         if ( l  >=rx  || lx>=r) {
+                  return  NeutralELement  ;
+         }
+
+
+         if  (lx>=l and rx<=r) {
+                   return nd->val ;
+         }
+             
+
+         propagate(nd);
+
+         item res1 = calc(l , r , nd->lft) ;
+         item res2 = calc(l  ,r  , nd->rght) ;
+         item res=  merge(res1 ,res2) ;
+         return res;
+    }
+
+    item calc(int  l ,  int r) {
+            return calc(  l ,r   , root) ;
     }
 
 
 };
+
+
+void testCases()  {
+     int n;
+     cin >> n ;
+
+
+
+     const int SH_SEQ =  1e15 ,MX =1e15;
+
+     vector < int > a(n+1)  , dp(n+1) ;
+     for  (int  i =1; i <=n  ;  ++i)  {
+                cin >> a[i] ;
+     }
+
+     //a[i]  + sh1 =  sg  +sh2
+
+     segtree sg(1e18) ;
+     sg.change(1+SH_SEQ , 1e18 , -1e18) ;
+   ;
+
+     int sh1 = 0 ,  sh2 = 0  ;
+     for  (int  i = 1; i<=n ; ++i) {
+
+
+                dp[i]  = max(dp[i-1] , (int)(a[i]  >= 0));
+                int mx =  sg.calc(-a[i] - sh1  +  SH_SEQ ,  MX-sh1  + SH_SEQ) ;
+
+
+                sh1+=a[i] ;
+                sh2++ ;
+                dp[i] = max(dp[i] , mx+sh2);
+
+                int v1=  sg.calc(-sh1  +  SH_SEQ  ,  -sh1 +1+  SH_SEQ);
+                sg.change( - sh1  +  SH_SEQ  , -sh1 +  SH_SEQ+1 , -v1);
+
+                sg.change(  - sh1  +  SH_SEQ  , -sh1 +  SH_SEQ +1, max(v1 ,   (dp[i]  - sh2)) );
+
+
+     }
+
+     cout <<dp[n] <<"\n";
+
+
+
+}
+
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int tc;
+    cin >> tc;
+    while (tc--) {
+        testCases() ;
+    }
+}
