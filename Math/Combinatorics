@@ -1,3 +1,33 @@
+//mint
+#define ll long long
+template<int mod>
+struct Mint {
+  int x;
+  Mint() : x(0) {}
+  Mint(ll x_) : x(x_ % mod) { if (x < 0) x += mod; }
+  Mint& operator += (Mint b) { if ((x += b.x) >= mod) x -= mod; return *this;}
+  Mint& operator -= (Mint b) { if ((x -= b.x) < 0) x += mod; return *this;}
+  Mint& operator *= (Mint b) { x = (ll)(x) * b.x % mod; return *this;}
+  Mint pow(ll e) const {
+		Mint r = 1;
+		for (Mint b = *this; e; b *= b, e >>= 1)
+			if (e & 1) r *= b;
+    return r;
+  }
+  Mint inv() { return pow(mod - 2); }
+  Mint& operator /= (Mint b) { return *this *= b.inv(); }
+  friend Mint operator +  (Mint a, Mint b) { return a += b;     }
+  friend Mint operator -  (Mint a, Mint b) { return a -= b;     }
+  friend Mint operator /  (Mint a, Mint b) { return a /= b;     }
+  friend Mint operator *  (Mint a, Mint b) { return a *= b;     }
+  friend bool operator == (Mint a, Mint b) { return a.x == b.x; }
+  friend bool operator != (Mint a, Mint b) { return a.x != b.x; }
+};
+ 
+typedef Mint<998244353> mint;
+ 
+
+
 //All operations are ok with mod by both sides   , to have good equation conside b*b^-1 this didnt affect mod equations
 int Div (int a  ,  int  b , int m){
                   return  (a%m * mod_inv(b)%mod) % mod;
