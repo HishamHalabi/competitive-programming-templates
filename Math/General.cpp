@@ -87,3 +87,10 @@ x6 =
 When I used a calculator on this (only entering the Golden Ratio to 6 decimal places) I got the answer 8.00000033 , a more accurate calculation would be closer to 8.
 
 Try n=12 and see what you get.
+  //////////////////////////////////////////////////////////////////////
+   given a forest with n
+ vertices and m
+ edges. Let k
+ be the number of connected components in this forest, and let their sizes be s1,s2,…,sk
+. It is known that there are exactly nk−2∏i=1ksi
+ ways to add edges to the forest so that it becomes a single tree.
