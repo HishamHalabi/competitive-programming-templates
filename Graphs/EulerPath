@@ -12,6 +12,13 @@ for undircted Graph trying to assign edges direction
    in Euler path  >> only 0 or  2nds break in[nd] = out[nd]    
    //     cycle >> 0 break //
 
+
+ ////////////
+handle multi edges
+////
+return path in form of edges
+//////////////////////
+
 */
 
 struct Euler {
