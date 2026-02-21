@@ -1,3 +1,19 @@
+/* 
+for undircted Graph trying to assign edges direction
+//////////////////////////
+
+    path that start from some node visit all edges once and
+       if all deg[nd[%2 ==  >> return to the start node  >> this path callerd >>  Euler cycle 
+
+     to have Euler path  in directed graph >> deg[anyNd]%2 == 0  except for 0 or 2 nodes  
+       //          cycle      deg[anyNd]%2 == 0
+ 
+
+   in Euler path  >> only 0 or  2nds break in[nd] = out[nd]    
+   //     cycle >> 0 break //
+
+*/
+
 struct Euler {
     int n, edges = 0;
     vector<vector<pair<int,int>>> g; // {to, edge_id}
