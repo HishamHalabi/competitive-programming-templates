@@ -20,67 +20,89 @@ return path in form of edges
 //////////////////////
 
 */
-
+ 
+struct Edge {
+    int id, u, v;
+};
+ 
 struct Euler {
-    int n, edges = 0;
-    vector<vector<pair<int,int>>> g; // {to, edge_id}
+    int n;
+    vector<vector<pair<int, int>>> g;
+    vector<Edge> edges;
     vector<bool> used;
-
-    Euler(int n) : n(n) {
-        g.assign(n + 1, {});
+    vector<int> ptr;
+ 
+    Euler(int n) : n(n), g(n + 1) {}
+ 
+    void add_edge(int id, int u, int v) {
+        g[u].push_back({v, id});
+        g[v].push_back({u, id});
+        if (id >= (int)edges.size()) edges.resize(id + 1);
+        edges[id] = {id, u, v};
     }
-
-    void add_edge(int u, int v) {
-        g[u].push_back({v, edges});
-        g[v].push_back({u, edges});
-        edges++;
-    }
-
-    void dfs(int u, vector<int>& path) {
-        while (!g[u].empty()) {
-            auto [v, id] = g[u].back();
-            g[u].pop_back();
-
-            if (used[id]) continue;
-            used[id] = true;
-
-            dfs(v, path);
-            path.push_back(id); // store edge id
-        }
-    }
-
-    int find_start() {
-        int start = -1;
-        int odd = 0;
-
-        for (int i = 1; i <= n; i++) {
-            if (g[i].size() % 2) {
-                odd++;
-                start = i;
+ 
+    vector<Edge> get_single_path(int start_node) {
+        vector<Edge> path;
+        stack<int> st;
+        stack<Edge> edge_st;
+        st.push(start_node);
+ 
+        while (!st.empty()) {
+            int u = st.top();
+            bool found = false;
+ 
+            while (ptr[u] < (int)g[u].size()) {
+                auto [v, id] = g[u][ptr[u]++];
+                if (used[id]) continue;
+ 
+                used[id] = true;
+                st.push(v);
+                edge_st.push({id, u, v});
+                found = true;
+                break;
             }
-            if (start == -1 && !g[i].empty())
-                start = i;
+ 
+            if (!found) {
+                if (!edge_st.empty()) {
+                    path.push_back(edge_st.top());
+                    edge_st.pop();
+                }
+                st.pop();
+            }
         }
-
-        if (!(odd == 0 || odd == 2))
-            return -1;
-
-        return start;
-    }
-
-    vector<int> get_edges_path() {
-        used.assign(edges, false);
-
-        int start = find_start();
-        if (start == -1) return {};
-
-        vector<int> path;
-        dfs(start, path);
-
-        if ((int)path.size() != edges)
-            return {}; // not connected
-
         reverse(path.begin(), path.end());
         return path;
+    }
+ 
+    vector<vector<Edge>> get_all_paths() {
+        int max_id = 0;
+        for (const auto& e : edges) if (e.id > max_id) max_id = e.id;
+ 
+        used.assign(max_id + 1, false);
+        ptr.assign(n + 1, 0);
+        vector<vector<Edge>> all_paths;
+ 
+        vector<int> starts;
+        for (int i = 1; i <= n; i++) {
+            if (g[i].size() % 2 != 0) starts.push_back(i);
+        }
+        for (int i = 1; i <= n; i++) {
+            starts.push_back(i);
+        }
+ 
+        for (int s : starts) {
+            bool has_unused = false;
+            for (auto& p : g[s]) {
+                if (!used[p.second]) {
+                    has_unused = true;
+                    break;
+                }
+            }
+            if (has_unused) {
+                vector<Edge> p = get_single_path(s);
+                if (!p.empty()) all_paths.push_back(p);
+            }
+        }
+        return all_paths;
     }
 };
