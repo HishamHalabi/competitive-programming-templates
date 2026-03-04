@@ -1,1 +1,12 @@
 
+for 
+A(x)   of degree d  
+   A(x)=a0+a1x+a2x2+⋯+adxd          x >>x to power d
+
+
+if A(x) =  B(x) for all x >> so ai  = bi
+if A(x) = B(x)  (mod p) >> ai%p = bi %p  
+
+why 
+     C =  sum of     (ai  - bi)    * xi      =  0   
+   the only way for seq c0  + c1*x   + c2*x2  +  ....   = 0   only happens if ci =0 
