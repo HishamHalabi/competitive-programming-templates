@@ -1,0 +1,9 @@
+assume u have n distinct objects
+
+with these problems >>
+   is  (objects  group1)  = (objects group2)  >>order dont matter
+
+so for each object  >>  val[ob] = random64intval() ; 
+                     compare the xor of group1 to group2
+
+ 
