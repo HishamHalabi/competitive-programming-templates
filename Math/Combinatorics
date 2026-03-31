@@ -25,6 +25,21 @@ struct Mint {
 };
  
 typedef Mint<998244353> mint;
+
+const int N  =  5e5 ;
+mint fact[N] ;
+void pre() { 
+
+    fact[1] = 1;
+    for (int  i = 2; i <N ; ++i)
+               fact[i] = fact[i-1]   *  i;
+}
+
+mint nCr(int n , int r)  {
+    mint z = 0 ;
+    if (n <  r)return   z ;
+    return fact[n]  /  (fact[r]  *  fact[n  - r]) ;
+}
  
 
 
