@@ -443,31 +443,50 @@ struct Point {
     double y;
 };
  
+vector<Point> cir(Point c0, long double r0, Point c1, long double r1) {
 
-// Function to calculate intersection points between two circles
-vector<Point> circleIntersection(double x1, double y1, double r1, double x2, double y2, double r2) {
-    vector<Point> intersections;
- 
-    double d = sqrt(distanceSquared(x1, y1, x2, y2));
- 
-    // No intersection or infinite intersections (circles are the same)
-    if (d > r1 + r2 || d < fabs(r1 - r2)) {
-        return intersections;
+    const ld EPS = 1e-9 ;
+    long double dx = c1.x - c0.x;
+    long double dy = c1.y - c0.y;
+    long double d = hypot(dx, dy);
+
+    if (fabsl(d) < EPS && fabsl(r0 - r1) < EPS) {
+        return {c0};
     }
- 
-    double a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
-    double h = sqrt(r1 * r1 - a * a);
- 
-    double x0 = x1 + a * (x2 - x1) / d;
-    double y0 = y1 + a * (y2 - y1) / d;
- 
-    intersections.push_back({x0 + h * (y2 - y1) / d, y0 - h * (x2 - x1) / d});
-    intersections.push_back({x0 - h * (y2 - y1) / d, y0 + h * (x2 - x1) / d});
- 
-    return intersections;
+
+
+    if (d > r0 + r1 + EPS || d < fabsl(r0 - r1) - EPS) {
+        return {};
+    }
+
+
+    if (fabsl(d) < EPS && fabsl(r0 - r1) > EPS) {
+        return {};
+    }
+
+
+    long double a = (r0*r0 - r1*r1 + d*d) / (2*d);
+    long double h_sq = r0*r0 - a*a;
+
+    if (h_sq < -EPS) return {};
+    if (h_sq < 0) h_sq = 0;
+
+    long double h = sqrtl(h_sq);
+
+
+    long double xm = c0.x + a * dx / d;
+    long double ym = c0.y + a * dy / d;
+
+    Point p1 = { xm + h * dy / d, ym - h * dx / d };
+    Point p2 = { xm - h * dy / d, ym + h * dx / d };
+
+    if (fabsl(h) < EPS) {
+        return {p1};
+    } else {
+        return {p1, p2};
+    }
 }
- 
- 
+
 // Function to find intersection points between a circle and a line
 std::vector<Point> circleLineIntersection(double cx, double cy, double r, double m, double b) {
     std::vector<Point> intersections;
