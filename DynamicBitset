@@ -1,0 +1,132 @@
+struct DynamicBitset {
+    using ull = uint64_t;
+
+    int n;
+    vector<ull> b;
+
+    DynamicBitset(int n = 0, bool init = 0) : n(n) {
+        b.assign((n + 63) / 64, init ? ~0ULL : 0ULL);
+
+        // clear extra bits in last block if init = 1
+        if (init && n % 64) {
+            b.back() &= ((1ULL << (n % 64)) - 1);
+        }
+    }
+
+    // -------- bit access --------
+    inline void set(int i) {
+        b[i >> 6] |= (1ULL << (i & 63));
+    }
+
+    inline void reset(int i) {
+        b[i >> 6] &= ~(1ULL << (i & 63));
+    }
+
+    inline bool get(int i) const {
+        return (b[i >> 6] >> (i & 63)) & 1;
+    }
+
+    // -------- assignment --------
+    void assign(const DynamicBitset &other) {
+        b = other.b;
+        n = other.n;
+    }
+
+    // -------- AND / OR / XOR (SAFE) --------
+    DynamicBitset operator&(const DynamicBitset &o) const {
+        DynamicBitset res(n);
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            res.b[i] = b[i] & o.b[i];
+        return res;
+    }
+
+    DynamicBitset operator|(const DynamicBitset &o) const {
+        DynamicBitset res(n);
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            res.b[i] = b[i] | o.b[i];
+        return res;
+    }
+
+    DynamicBitset operator^(const DynamicBitset &o) const {
+        DynamicBitset res(n);
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            res.b[i] = b[i] ^ o.b[i];
+        return res;
+    }
+
+    DynamicBitset& operator&=(const DynamicBitset &o) {
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            b[i] &= o.b[i];
+        for (int i = sz; i < b.size(); i++)
+            b[i] = 0;
+        return *this;
+    }
+
+    DynamicBitset& operator|=(const DynamicBitset &o) {
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            b[i] |= o.b[i];
+        return *this;
+    }
+
+    DynamicBitset& operator^=(const DynamicBitset &o) {
+        int sz = min(b.size(), o.b.size());
+        for (int i = 0; i < sz; i++)
+            b[i] ^= o.b[i];
+        return *this;
+    }
+
+    // -------- first active bit --------
+    int first() const {
+        for (int i = 0; i < (int)b.size(); i++) {
+            if (b[i]) {
+                return i * 64 + __builtin_ctzll(b[i]);
+            }
+        }
+        return -1;
+    }
+
+    // -------- next active bit --------
+    int next(int pos) const {
+        if (pos < 0) return first();
+
+        int i = pos >> 6;
+        if (i >= (int)b.size()) return -1;
+
+        ull cur = b[i] & (~0ULL << (pos & 63));
+
+        if (cur)
+            return i * 64 + __builtin_ctzll(cur);
+
+        for (int j = i + 1; j < (int)b.size(); j++) {
+            if (b[j])
+                return j * 64 + __builtin_ctzll(b[j]);
+        }
+        return -1;
+    }
+
+    // -------- last active bit --------
+    int last() const {
+        for (int i = (int)b.size() - 1; i >= 0; i--) {
+            if (b[i]) {
+                return i * 64 + (63 - __builtin_clzll(b[i]));
+            }
+        }
+        return -1;
+    }
+
+    // -------- utilities --------
+    bool any() const {
+        for (auto &x : b)
+            if (x) return true;
+        return false;
+    }
+
+    void clear() {
+        fill(b.begin(), b.end(), 0);
+    }
+};
