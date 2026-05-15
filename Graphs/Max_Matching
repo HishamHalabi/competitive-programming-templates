@@ -1,0 +1,115 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define int long long
+#define all(a) a.begin()  , a.end()
+
+
+struct Kuhn {
+    int n;
+    vector<vector<int>> g;
+    vector<int> mt;
+    vector<char> used;
+
+    Kuhn(int n) : n(n) {
+        g.assign(n + 1, {});
+        mt.assign(n + 1, -1);
+        used.assign(n + 1, 0);
+    }
+
+    void add_edge(int u, int v) {
+        g[u].push_back(v);   // multiple edges allowed naturally
+    }
+
+    bool dfs(int v) {
+        if (used[v]) return false;
+        used[v] = 1;
+
+        for (int to : g[v]) {
+            if (mt[to] == -1 || dfs(mt[to])) {
+                mt[to] = v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    int max_matching() {
+        int match = 0;
+        for (int v = 1; v <= n; v++) {
+            fill(used.begin(), used.end(), 0);
+            if (dfs(v)) match++;
+        }
+        return match;
+    }
+
+    vector<pair<int,int>> get_matching() {
+        vector<pair<int,int>> res;
+        for (int v = 1; v <= n; v++) {
+            if (mt[v] != -1) {
+                res.push_back({mt[v], v});
+            }
+        }
+        return res;
+    }
+};
+
+void solve()
+{
+
+      int n  ;
+      cin >> n ;
+
+      vector < int >  a(n+1) ,b(n+1) ;
+      for (int  i = 1; i <=n ; ++i) {
+                cin >>a[i] ;
+      }
+
+      for (int i = 1; i <=n ; ++i) {
+               cin >> b[i] ;
+      }
+
+
+
+      auto ok =  [&] (int mn) {
+            Kuhn mx(2*n+1) ;
+            for (int i = 1;  i<=n  ; ++i)  {
+                   for (int   j = 1; j <=n ; ++j) {
+                              if (a[i]  %b[j]  == 0 and a[i]  /b[j]>=mn) {
+                                mx.add_edge(i  , j  +  n)  ;
+                              }
+                   }
+            }
+            return mx.max_matching()  == n;
+
+      };
+
+
+      int l = 1 , h = 1e6 , ans = -1 ;
+      while(l<=h) {
+           int md = (l  +  h)/2;
+           if (ok(md)) {
+               ans = md;
+               l = md+1 ;
+           }else h = md-1 ;
+      }
+
+      cout<<ans<<"\n";
+
+
+}
+
+int32_t main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+
+
+    int tc  = 1;
+    cin >> tc;
+
+    while (tc--)
+        solve();
+}
+
+
