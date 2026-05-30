@@ -1,0 +1,61 @@
+
+
+-------------------------------------------------
+typedef unsigned long long ull;
+typedef unsigned __int128 u128;
+ 
+struct Mont {
+    ull n, ni, r2;
+    Mont(ull n) : n(n) {
+        ni = 1;
+        for (int i = 0; i < 6; i++) ni *= 2 - n * ni;
+        ni = -ni;               // n * ni ≡ -1 (mod 2^64)
+        r2 = -(u128)n % n;     // R² mod n, where R = 2^64
+    }
+    ull red(u128 x) const {
+        ull r = (x + (u128)((ull)x * ni) * n) >> 64;
+        return r >= n ? r - n : r;
+    }
+    ull mul(ull a, ull b) const { return red((u128)a * b); }
+    ull to(ull a) const { return mul(a, r2); }
+};
+ 
+bool isPrime(ull n) {
+    if (n < 2) return false;
+    if (n == 2 || n == 3 || n == 5 || n == 7) return true;
+    if (n % 2 == 0 || n % 3 == 0 || n % 5 == 0 || n % 7 == 0) return false;
+    if (n == 11 || n == 13 || n == 17 || n == 19 || n == 23 || n == 29 || n == 31 || n == 37) return true;
+    if (n % 11 == 0 || n % 13 == 0 || n % 17 == 0 || n % 19 == 0 ||
+        n % 23 == 0 || n % 29 == 0 || n % 31 == 0 || n % 37 == 0) return false;
+    if (n < 41 * 41) return true;
+ 
+    ull d = n - 1; int r = __builtin_ctzll(d); d >>= r;
+    Mont m(n);
+    ull one = m.to(1), neg1 = m.to(n - 1);
+ 
+    // Tiered: 4 witnesses for n < ~3.2B, else 7
+    auto test = [&](ull a) -> bool {
+        if (a % n == 0) return true;
+        ull aM = m.to(a % n), x = one, e = d;
+        for (; e; e >>= 1) {
+            if (e & 1) x = m.mul(x, aM);
+            aM = m.mul(aM, aM);
+        }
+        if (x == one || x == neg1) return true;
+        for (int i = 0; i < r - 1; i++) {
+            x = m.mul(x, x);
+            if (x == neg1) return true;
+        }
+        return false;
+    };
+ 
+    if (n < 3215031751ULL) {
+        for (ull a : {2, 3, 5, 7})
+            if (!test(a)) return false;
+    } else {
+        for (ull a : {2, 325, 9375, 28178, 450775, 9780504, 1795265022})
+            if (!test(a)) return false;
+    }
+    return true;
+}
+ 
