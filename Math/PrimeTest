@@ -1,5 +1,6 @@
-
-
+worst time is like 500 simple instructions
+we can deal it as min(7  *  log(n) ,  100)
+instructions here are very optimized to be very simple away from %
 -------------------------------------------------
 typedef unsigned long long ull;
 typedef unsigned __int128 u128;
