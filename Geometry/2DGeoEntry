@@ -808,6 +808,104 @@ bool inPolygon(vector<PT> p, PT a, bool strict) {
     return numCrossings & 1; // inside if odd number of crossings
 }
 
+struct star {
+    int n; // number of sides of the star
+    double r; // radius of the circumcircle
+    star(int _n, double _r) {
+        n = _n;
+        r = _r;
+    }
+    double area() {
+        double theta = PI / n;
+        double s = 2 * r * sin(theta);
+        double R = 0.5 * s / tan(theta);
+        double a = 0.5 * n * s * R;
+        double a2 = 0.25 * s * s / tan(1.5 * theta);
+        return a - n * a2;
+    }
+};
+
+// given a list of lengths of the sides of a polygon in counterclockwise order
+// returns the maximum area of a non-degenerate polygon that can be formed using those lengths
+double get_maximum_polygon_area_for_given_lengths(vector<double> v) {
+    if (v.size() < 3) {
+        return 0;
+    }
+    int m = 0;
+    double sum = 0;
+    for (int i = 0; i < v.size(); i++) {
+        if (v[i] > v[m]) {
+            m = i;
+        }
+        sum += v[i];
+    }
+    if (sign(v[m] - (sum - v[m])) >= 0) {
+        return 0; // no non-degenerate polygon can be formed
+    }
+    double l = v[m] / 2.0, r = 1e9;
+    auto get_angle = [](double side, double radius) {
+        return 2.0 * asin(side / (2.0 * radius));
+    };
+    auto get_total_angle = [&](double radius) {
+        double ans = 0;
+        for (int i = 0; i < v.size(); i++) {
+            ans += get_angle(v[i], radius);
+        }
+        return ans;
+    };
+    auto get_total_angle_2 = [&](double radius) {
+        double ans = 0;
+        for (int i = 0; i < v.size(); i++) {
+            if (i == m) {
+                ans += 2.0 * PI - get_angle(v[i], radius);
+            } else {
+                ans += get_angle(v[i], radius);
+            }
+        }
+        return ans;
+    };
+    bool ok = false;
+    for (int iter = 0; iter < 100; iter++) {
+        double mid = (l + r) / 2.0;
+        if (get_total_angle(mid) >= 2.0 * PI) {
+            l = mid;
+            ok = true;
+        } else {
+            r = mid;
+        }
+    }
+    double radius = l;
+    if (!ok) {
+        l = v[m] / 2.0, r = 1e9;
+        for (int iter = 0; iter < 100; iter++) {
+            double mid = (l + r) / 2.0;
+            if (get_total_angle_2(mid) <= 2.0 * PI) {
+                l = mid;
+            } else {
+                r = mid;
+            }
+        }
+        radius = l;
+        double ans = 0;
+        for (int i = 0; i < v.size(); i++) {
+            double angle = get_angle(v[i], radius);
+            double area = 0.5 * radius * radius * sin(angle);
+            if (i == m) {
+                ans -= area;
+            } else {
+                ans += area;
+            }
+        }
+        return ans;
+    }
+    double ans = 0;
+    for (int i = 0; i < v.size(); i++) {
+        double angle = get_angle(v[i], radius);
+        ans += 0.5 * radius * radius * sin(angle);
+    }
+    return ans;
+}
+
 
 // --- Circular Boundary Core Systems ---
 
