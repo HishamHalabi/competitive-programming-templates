@@ -152,6 +152,19 @@ T orientedAngle(pt a , pt b , pt c)  {
    return 2*M_PI -  ang;
 }
 
+//ang deg   , len : dis from origin
+//ang from 0axis to the vector
+pair < T, T > getPoint(T ang  ,  T len)
+{
+        if (ang  < 0 )
+               ang  = 2 * M_PI  + ang   ;
+        T dot = len  *  cos(ang) ;
+        T cross =  len  * sin(ang);
+        T x1 = dot ;
+        T y1 =cross;
+        return {x1  , y1} ;
+}
+
 //same as above but it's like giving -O here and 360-O above
 T angleTravelled(pt a, pt b, pt c){ //exact angle +=[0...pi]
     T ampli = angle(b - a, c - a);
@@ -359,46 +372,20 @@ ld segSeg(pt a, pt b, pt c, pt d) {
                 segPoint(c,d,a), segPoint(c,d,b)});
 }
 
-////////////////////// polygons ////////////////////////////
-
-ld areaTriangle(pt a, pt b, pt c) {
-    return abs(cross(b-a, c-a)) / 2.0;
-}
-
-ld areaPolygon(vector<pt> p) {
-    ld area = 0.0;
-    for (int i = 0, n = p.size(); i < n; i++) {
-        area += cross(p[i], p[(i+1)%n]); // wrap back to 0 if i == n - 1
-    }
-    return abs(area) / 2.0;
-}
-
 bool above(pt a, pt p) {
     return p.y >= a.y;
 }
-
 // check if [PQ] crosses ray from A
 //read it from book , but so far it checks intersection from one side of line  (making it always above)
 bool crossesRay(pt a, pt p, pt q) {
     return (above(a,q)- above(a,p)) * orient(a,p,q) > 0;
 }
-
-bool inPolygon(vector<pt> p, pt a, bool strict = true) {
-    int numCrossings = 0;
-    for (int i = 0, n = p.size(); i < n; i++) {
-        if (onSegment(p[i], p[(i+1)%n], a))
-            return !strict;
-        numCrossings += crossesRay(a, p[i], p[(i+1)%n]);
-    }
-    return numCrossings & 1; // inside if odd number of crossings
-}
-
 //check if point projection is on ray
 bool pointOnRay(ld X, ld Y, ld a, ld b, ld c, ld d){
     pt p(X,Y), A(a,b), B(c,d);
     return dot(p-A, B-A) >= -EPS;
 }
-
+//point dist to ray
 T  pointRay(ld X,  ld Y , ld a , ld b , ld c, ld d) {
       line l({a,b}  , {c ,d}) ;
      pt p(X,Y) ;
@@ -422,7 +409,7 @@ bool collinearRays(pt a, pt b, pt c, pt d){
     return fabsl(orient(a,b,c)) < EPS &&
            fabsl(orient(a,b,d)) < EPS;
 }
-
+//distance
 ld rayRay(pt a, pt b, pt c, pt d){
     line l1(a,b), l2(c,d);
 
@@ -451,26 +438,343 @@ ld rayRay(pt a, pt b, pt c, pt d){
     return min(pointRay(c.x,c.y,a.x,a.y,b.x,b.y),
                pointRay(a.x,a.y,c.x,c.y,d.x,d.y));
 }
+//////////////////////////////////////////  CIRCLES   //////////////////////////////////////////
+ 
+pair<pt, T> circumCircle(pt a, pt b, pt c) {
+    b = b-a, c = c-a; // consider coordinates relative to A
+    assert(cross(b,c) != 0); // no circumcircle if A,B,C aligned
+    return {a + perp(b*sq(c) - c*sq(b))/cross(b,c)/(T)2, abs(perp(b*sq(c) - c*sq(b))/cross(b,c)/(T)2)};
+}
+ //circle line inters
+int circleLine(pt o, double r, line l, pair<pt,pt> &out) {
+    double h2 = r*r - l.sqDist(o);
+    if (h2 >= 0) { // the line touches the circle
+        pt p = l.proj(o); // point P
+        pt h = l.v* (T)(sqrt(h2)/abs(l.v)); // vector parallel to l, of length h
+        out = {p-h, p+h};
+    }
+    return 1 + sgn(h2);
+}
 
-//ang deg   , len : dis from origin
-//ang from 0axis to the vector
-pair < T, T > getPoint(T ang  ,  T len)
-{
-        if (ang  < 0 )
-               ang  = 2 * M_PI  + ang   ;
-        T dot = len  *  cos(ang) ;
-        T cross =  len  * sin(ang);
-        T x1 = dot ;
-        T y1 =cross;
-        return {x1  , y1} ;
+//intersection
+int circleCircle(pt o1, T r1, pt o2, T r2, pair<pt,pt> &out) {
+    pt d=o2-o1; T d2=sq(d);
+    if (d2 == 0) {assert(r1 != r2); return 0;} // concentric circles
+    T pd = (d2 + r1*r1 - r2*r2)/2; // = |O_1P| * d
+    T h2 = r1*r1 - pd*pd/d2; // = hˆ2
+    if (h2 >= 0) {
+        pt p = o1 + d*pd/d2, h = perp(d)*sqrt(h2/d2);
+        out = {p-h, p+h};
+    }
+    return 1 + sgn(h2);
 }
-int INT(T v) {
-  if (v <  0)
-       v-=EPS;
-  else
-     v+=EPS;
-  return (int)v ;
+
+//tangent points to 2 circles  (if u need  point and circle make r =  0 )
+int tangents(pt o1, T r1, pt o2, T r2, bool inner, vector<pair<pt,pt>> &out) {
+    if (inner) r2 = -r2;
+    pt d = o2-o1;
+    T dr = r1-r2, d2 = sq(d), h2 = d2-dr*dr;
+    if (d2 == 0 || h2 < 0) {assert(h2 != 0); return 0;}
+    for (T sign : {-1,1}) {
+        pt v = (d*dr + perp(d)*sqrt(h2)*sign)/d2;
+        out.push_back({o1 + v*r1, o2 + v*r2});
+    }
+    return 1 + (h2 > 0);
 }
+
+//////////////////////////////////////PolyGons//////////////////////////////////////
+ld areaPolygon(vector<pt> p) {
+    ld area = 0.0;
+    for (int i = 0, n = p.size(); i < n; i++) {
+        area += cross(p[i], p[(i+1)%n]); // wrap back to 0 if i == n - 1
+    }
+    return abs(area) / 2.0;
+}
+
+bool isConvex(vector<pt> p) {
+    bool hasPos=false, hasNeg=false;
+    for (int i=0, n=p.size(); i<n; i++) {
+        int o = orient(p[i], p[(i+1)%n], p[(i+2)%n]);
+        if (o > 0) hasPos = true;
+        if (o < 0) hasNeg = true;
+    }
+    return !(hasPos && hasNeg);
+}
+ 
+ld areaTriangle(pt a, pt b, pt c) {
+    return abs(cross(b-a, c-a)) / 2.0;
+}
+ 
+ld areaPolygon(vector<pt> p) {
+    ld area = 0.0;
+    for (int i = 0, n = p.size(); i < n; i++) {
+        area += cross(p[i], p[(i+1)%n]); // wrap back to 0 if i == n - 1
+    }
+    return abs(area) / 2.0;
+}
+ 
+// true if P at least as high as A
+bool above(pt a, pt p) {
+    return p.y >= a.y;
+}
+ 
+// if strict, returns false when A is on the boundary O(n)  (convex or not convex)
+bool inPolygon(vector<pt> p, pt a, bool strict = true) {
+    int numCrossings = 0;
+    for (int i = 0, n = p.size(); i < n; i++) {
+        if (onSegment(p[i], p[(i+1)%n], a))
+            return !strict;
+        numCrossings += crossesRay(a, p[i], p[(i+1)%n]);
+    }
+    return numCrossings & 1; // inside if odd number of crossings
+}
+// maximum distance from a convex polygon to another convex polygon
+double maximum_dist_from_polygon_to_polygon(vector<PT> &u, vector<PT> &v){ //O(n)
+    int n = (int)u.size(), m = (int)v.size();
+    double ans = 0;
+    if (n < 3 || m < 3) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) ans = max(ans, dist2(u[i], v[j]));
+        }
+        return sqrt(ans);
+    }
+    if (u[0].x > v[0].x) swap(n, m), swap(u, v);
+    int i = 0, j = 0, step = n + m + 10;
+    while (j + 1 < m && v[j].x < v[j + 1].x) j++ ;
+    while (step--) {
+        if (cross(u[(i + 1)%n] - u[i], v[(j + 1)%m] - v[j]) >= 0) j = (j + 1) % m;
+        else i = (i + 1) % n;
+        ans = max(ans, dist2(u[i], v[j]));
+    }
+    return sqrt(ans);
+}
+////////////////////////////////mostly here about convex///////////////////////////////////////////
+bool cw(pt a, pt b, pt c, bool include_collinear) {
+    int o = sgn(orient(a, b, c));
+    return o < 0 || (include_collinear && o == 0);
+}
+
+bool collinear(pt a, pt b, pt c) { return sgn(orient(a, b, c)) == 0; }
+
+//O(nlog)    >> min area convex shape ,  min perim so far
+//input  : random ordered points  ,  ouput   : counter clock wise
+void convex_hull(vector<pt>& a, bool include_collinear = false) {
+    pt p0 = *min_element(a.begin(), a.end(), [](pt a, pt b) {
+        return make_pair(a.y, a.x) < make_pair(b.y, b.x);
+    });
+    sort(a.begin(), a.end(), [&p0](const pt& a, const pt& b) {
+        int o = sgn(orient(p0, a, b));
+        if (o == 0)
+            return (p0.x-a.x)*(p0.x-a.x) + (p0.y-a.y)*(p0.y-a.y)
+                   < (p0.x-b.x)*(p0.x-b.x) + (p0.y-b.y)*(p0.y-b.y);
+        return o < 0;
+    });
+    if (include_collinear) {
+        int i = (int)a.size()-1;
+        while (i >= 0 && collinear(p0, a[i], a.back())) i--;
+        reverse(a.begin()+i+1, a.end());
+    }
+
+    vector<pt> st;
+    for (int i = 0; i < (int)a.size(); i++) {
+        while (st.size() > 1 && !cw(st[st.size()-2], st.back(), a[i], include_collinear))
+            st.pop_back();
+        if(st.empty() || a[i] != st.back())
+            st.push_back(a[i]);
+    }
+
+    if (include_collinear == false && st.size() == 2 && st[0] == st[1])
+        st.pop_back();
+
+    a = st;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//reorder counter clock wise
+void reorder_polygon(vector<pt> & P){
+    size_t pos = 0;
+    for(size_t i = 1; i < P.size(); i++){
+        if(P[i].y < P[pos].y || (P[i].y == P[pos].y && P[i].x < P[pos].x))
+            pos = i;
+    }
+    rotate(P.begin(), P.begin() + pos, P.end());
+}
+
+//p must be counter clockwise
+//polygon out from summing eacy two points from  p ,q where p ,q are convex and  ouput will be convex hull
+//in  : ccw  , out : ccw
+vector<pt> minkowski(vector<pt> P, vector<pt> Q){
+    // the first vertex must be the lowest
+    reorder_polygon(P);
+    reorder_polygon(Q);
+    // we must ensure cyclic indexing
+    P.push_back(P[0]);
+    P.push_back(P[1]);
+    Q.push_back(Q[0]);
+    Q.push_back(Q[1]);
+    // main part
+    vector<pt> result;
+    size_t i = 0, j = 0;
+    while(i < P.size() - 2 || j < Q.size() - 2){
+        result.push_back(P[i] + Q[j]);
+        auto cross = (P[i + 1] - P[i]).cross(Q[j + 1] - Q[j]);
+        if(cross >= 0 && i < P.size() - 2)
+            ++i;
+        if(cross <= 0 && j < Q.size() - 2)
+            ++j;
+    }
+    return result;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+// Basic half-plane struct.
+struct Halfplane {
+
+    // 'p' is a passing point of the line and 'pq' is the direction vector of the line.
+    pt p, pq;
+    long double angle;
+
+    Halfplane() {}
+    Halfplane(const pt& a, const pt& b) : p(a), pq(b - a) {
+        angle = atan2l(pq.y, pq.x);
+    }
+
+    // Check if point 'r' is outside this half-plane.
+    // Every half-plane allows the region to the LEFT of its line.
+    bool out(const pt& r) {
+        return cross(pq, r - p) < -EPS;
+    }
+
+    // Comparator for sorting.
+    bool operator < (const Halfplane& e) const {
+        return angle < e.angle;
+    }
+
+    // Intersection point of the lines of two half-planes. It is assumed they're never parallel.
+    friend pt inter(const Halfplane& s, const Halfplane& t) {
+        long double alpha = cross((t.p - s.p), t.pq) / cross(s.pq, t.pq);
+        return s.p + (s.pq * alpha);
+    }
+};
+
+
+vector<pt> hp_intersect(vector<Halfplane>& H) {
+    const int inf = 1e9;
+    pt box[4] = {  // Bounding box in CCW order
+            pt(inf, inf),
+            pt(-inf, inf),
+            pt(-inf, -inf),
+            pt(inf, -inf)
+    };
+
+    for(int i = 0; i<4; i++) { // Add bounding box half-planes.
+        Halfplane aux(box[i], box[(i+1) % 4]);
+        H.push_back(aux);
+    }
+
+    // Sort by angle and start algorithm
+    sort(H.begin(), H.end());
+    deque<Halfplane> dq;
+    int len = 0;
+    for(int i = 0; i < int(H.size()); i++) {
+
+        // Remove from the back of the deque while last half-plane is redundant
+        while (len > 1 && H[i].out(inter(dq[len-1], dq[len-2]))) {
+            dq.pop_back();
+            --len;
+        }
+
+        // Remove from the front of the deque while first half-plane is redundant
+        while (len > 1 && H[i].out(inter(dq[0], dq[1]))) {
+            dq.pop_front();
+            --len;
+        }
+
+        // Special case check: Parallel half-planes
+        if (len > 0 && fabsl(cross(H[i].pq, dq[len-1].pq)) < EPS) {
+            // Opposite parallel half-planes that ended up checked against each other.
+            if (dot(H[i].pq, dq[len-1].pq) < 0.0)
+                return vector<pt>();
+
+            // Same direction half-plane: keep only the leftmost half-plane.
+            if (H[i].out(dq[len-1].p)) {
+                dq.pop_back();
+                --len;
+            }
+            else continue;
+        }
+
+        // Add new half-plane
+        dq.push_back(H[i]);
+        ++len;
+    }
+
+    // Final cleanup: Check half-planes at the front against the back and vice-versa
+    while (len > 2 && dq[0].out(inter(dq[len-1], dq[len-2]))) {
+        dq.pop_back();
+        --len;
+    }
+
+    while (len > 2 && dq[len-1].out(inter(dq[0], dq[1]))) {
+        dq.pop_front();
+        --len;
+    }
+
+    // Report empty intersection if necessary
+    if (len < 3) return vector<pt>();
+
+    // Reconstruct the convex polygon from the remaining half-planes.
+    vector<pt> ret(len);
+    for(int i = 0; i+1 < len; i++) {
+        ret[i] = inter(dq[i], dq[i+1]);
+    }
+    ret.back() = inter(dq[len-1], dq[0]);
+    return ret;
+}
+////////////////////////////////////////////////////////////////////////////////////////
+
+vector<pair<int, int>> all_anti_podal(int n, vector<pt> &p) {
+    vector<pair<int, int>> result;
+
+    auto nx = [&](int i){return (i+1)%n;};
+    auto pv = [&](int i){return (i-1+n)%n;};
+
+    // parallel edges should't be visited twice
+    vector<bool> vis(n, false);
+
+    for (int p1 = 0, p2 = 0; p1 < n; ++p1) {
+        // the edge that we are going to consider in this iteration
+        // the datatype is Point, but it acts as a vector
+        pt base = p[nx(p1)] - p[p1];
+
+        // the last condition makes sure that the cross products don't have the same sign
+        while (p2 == p1 || p2 == nx(p1) || sgn(cross(base, p[nx(p2)] - p[p2])) == sgn(cross(base, p[p2] - p[pv(p2)]))) {
+            p2 = nx(p2);
+        }
+
+        if (vis[p1]) continue;
+        vis[p1] = true;
+
+        result.push_back({p1, p2});
+        result.push_back({nx(p1), p2});
+
+        // if both edges from p1 and p2 are parallel to each other
+        if (sgn(cross(base, p[nx(p2)] - p[p2])) == 0) {
+            result.push_back({p1, nx(p2)});
+            result.push_back({nx(p1), nx(p2)});
+            vis[p2] = true;
+        }
+    }
+
+    return result;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+
 void testCase() {
       T a,  b;
       cin >> a>> b;
