@@ -3,7 +3,7 @@ using namespace std;
 
 
 #include <algorithm>
-#define int long long
+// #define int long long
 #define ld long  double
 typedef ld T;
 typedef complex < T>  pt ;
@@ -39,7 +39,7 @@ atan2(y ,  x)
 */
 
 
-const ld M_PI= 3.14159265358979323846;
+// const ld M_PI= 3.14159265358979323846;
 
 /*
  *(x2-x1)^2  +  (y2 -  y1)^2  = r1
@@ -48,11 +48,11 @@ const ld M_PI= 3.14159265358979323846;
  *
  *
  *
- *   (x2-x1)  * (x0-x1)  +  (y2 - y1) * (y0-y1)  =  cross
+ * (x2-x1)  * (x0-x1)  +  (y2 - y1) * (y0-y1)  =  cross
  *
  *
- *       (x0-x1)  * x2    +(y0-y1) * y2    = cross  + x1 * (x0  - x1)  +  y1 * (y0  - y1)
- *        x2*(x1+x0)  * 2   -  y2*(y1+y0) *2 =r1-r0   -(x1^2   + y1^2+x0^2  + y1^2)
+ * (x0-x1)  * x2    +(y0-y1) * y2    = cross  + x1 * (x0  - x1)  +  y1 * (y0  - y1)
+ * x2*(x1+x0)  * 2   -  y2*(y1+y0) *2 =r1-r0   -(x1^2   + y1^2+x0^2  + y1^2)
  *
  */
 
@@ -72,7 +72,7 @@ int quarter(pt p) {
 
 //magin^2  || |V|^2
 T sq (pt  p)  {
-    return p.x*p.x  +  p.y  *  p.y;
+    return p.x*p.x  +  p.y  * p.y;
 }
 
 
@@ -134,7 +134,7 @@ T angle(pt v , pt w) {
     return ang =  min(ang    , 2*M_PI  - ang) ;
 
     /*
-     *  T c = dot(v,w)/(abs(v)*abs(w));  //more errors
+     * T c = dot(v,w)/(abs(v)*abs(w));  //more errors
       c = max((T)-1.0,min((T)1.0,c));
       return acos(c);
 */
@@ -158,7 +158,7 @@ pair < T, T > getPoint(T ang  ,  T len)
 {
         if (ang  < 0 )
                ang  = 2 * M_PI  + ang   ;
-        T dot = len  *  cos(ang) ;
+        T dot = len  * cos(ang) ;
         T cross =  len  * sin(ang);
         T x1 = dot ;
         T y1 =cross;
@@ -250,7 +250,7 @@ struct line{
 
     T side(pt p) {return cross(v,p)-c;}
     ld dist(pt p) {return abs(side(p)) / abs(v);}
-    double sqDist(pt p) {return side(p)*side(p) / (T)sq(v);}
+    ld sqDist(pt p) {return side(p)*side(p) / (T)sq(v);}
 
     //getting line that's perp with me and pass by point p
     line prepThrought(pt p){
@@ -439,15 +439,14 @@ ld rayRay(pt a, pt b, pt c, pt d){
                pointRay(a.x,a.y,c.x,c.y,d.x,d.y));
 }
 //////////////////////////////////////////  CIRCLES   //////////////////////////////////////////
- 
 pair<pt, T> circumCircle(pt a, pt b, pt c) {
     b = b-a, c = c-a; // consider coordinates relative to A
     assert(cross(b,c) != 0); // no circumcircle if A,B,C aligned
-    return {a + perp(b*sq(c) - c*sq(b))/cross(b,c)/(T)2, abs(perp(b*sq(c) - c*sq(b))/cross(b,c)/(T)2)};
+    return {a + prep(b*sq(c) - c*sq(b))/cross(b,c)/(T)2, abs(prep(b*sq(c) - c*sq(b))/cross(b,c)/(T)2)};
 }
  //circle line inters
-int circleLine(pt o, double r, line l, pair<pt,pt> &out) {
-    double h2 = r*r - l.sqDist(o);
+int circleLine(pt o, ld r, line l, pair<pt,pt> &out) {
+    ld h2 = r*r - l.sqDist(o);
     if (h2 >= 0) { // the line touches the circle
         pt p = l.proj(o); // point P
         pt h = l.v* (T)(sqrt(h2)/abs(l.v)); // vector parallel to l, of length h
@@ -463,7 +462,7 @@ int circleCircle(pt o1, T r1, pt o2, T r2, pair<pt,pt> &out) {
     T pd = (d2 + r1*r1 - r2*r2)/2; // = |O_1P| * d
     T h2 = r1*r1 - pd*pd/d2; // = hˆ2
     if (h2 >= 0) {
-        pt p = o1 + d*pd/d2, h = perp(d)*sqrt(h2/d2);
+        pt p = o1 + d*pd/d2, h = prep(d)*sqrt(h2/d2);
         out = {p-h, p+h};
     }
     return 1 + sgn(h2);
@@ -476,7 +475,7 @@ int tangents(pt o1, T r1, pt o2, T r2, bool inner, vector<pair<pt,pt>> &out) {
     T dr = r1-r2, d2 = sq(d), h2 = d2-dr*dr;
     if (d2 == 0 || h2 < 0) {assert(h2 != 0); return 0;}
     for (T sign : {-1,1}) {
-        pt v = (d*dr + perp(d)*sqrt(h2)*sign)/d2;
+        pt v = (d*dr + prep(d)*sqrt(h2)*sign)/d2;
         out.push_back({o1 + v*r1, o2 + v*r2});
     }
     return 1 + (h2 > 0);
@@ -500,24 +499,11 @@ bool isConvex(vector<pt> p) {
     }
     return !(hasPos && hasNeg);
 }
- 
+
 ld areaTriangle(pt a, pt b, pt c) {
     return abs(cross(b-a, c-a)) / 2.0;
 }
- 
-ld areaPolygon(vector<pt> p) {
-    ld area = 0.0;
-    for (int i = 0, n = p.size(); i < n; i++) {
-        area += cross(p[i], p[(i+1)%n]); // wrap back to 0 if i == n - 1
-    }
-    return abs(area) / 2.0;
-}
- 
-// true if P at least as high as A
-bool above(pt a, pt p) {
-    return p.y >= a.y;
-}
- 
+
 // if strict, returns false when A is on the boundary O(n)  (convex or not convex)
 bool inPolygon(vector<pt> p, pt a, bool strict = true) {
     int numCrossings = 0;
@@ -529,12 +515,12 @@ bool inPolygon(vector<pt> p, pt a, bool strict = true) {
     return numCrossings & 1; // inside if odd number of crossings
 }
 // maximum distance from a convex polygon to another convex polygon
-double maximum_dist_from_polygon_to_polygon(vector<PT> &u, vector<PT> &v){ //O(n)
+ld maximum_dist_from_polygon_to_polygon(vector<pt> &u, vector<pt> &v){ //O(n)
     int n = (int)u.size(), m = (int)v.size();
-    double ans = 0;
+    ld ans = 0;
     if (n < 3 || m < 3) {
         for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) ans = max(ans, dist2(u[i], v[j]));
+            for (int j = 0; j < m; j++) ans = max(ans, sq(u[i] - v[j]));
         }
         return sqrt(ans);
     }
@@ -544,11 +530,32 @@ double maximum_dist_from_polygon_to_polygon(vector<PT> &u, vector<PT> &v){ //O(n
     while (step--) {
         if (cross(u[(i + 1)%n] - u[i], v[(j + 1)%m] - v[j]) >= 0) j = (j + 1) % m;
         else i = (i + 1) % n;
-        ans = max(ans, dist2(u[i], v[j]));
+        ans = max(ans, sq(u[i] - v[j]));
     }
     return sqrt(ans);
 }
 ////////////////////////////////mostly here about convex///////////////////////////////////////////
+
+int pointInConvexPolygon(vector<pt> p, pt a) {
+    int n = p.size();
+    assert(n >= 3);
+    if (orient(p[0], p[1], a) < -EPS || orient(p[0], p[n - 1], a) > EPS) return -1;
+    int low = 1, high = n - 1;
+    while (high - low > 1) {
+        int mid = (low + high) / 2;
+        if (orient(p[0], p[mid], a) >= -EPS) {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    T area = orient(p[low], p[high], a);
+    if (area < -EPS) return -1; 
+    if (abs(orient(p[0], p[1], a)) <= EPS || abs(orient(p[0], p[n - 1], a)) <= EPS || abs(area) <= EPS) {
+        return 0; 
+    }
+    return 1; 
+}
 bool cw(pt a, pt b, pt c, bool include_collinear) {
     int o = sgn(orient(a, b, c));
     return o < 0 || (include_collinear && o == 0);
@@ -619,10 +626,10 @@ vector<pt> minkowski(vector<pt> P, vector<pt> Q){
     size_t i = 0, j = 0;
     while(i < P.size() - 2 || j < Q.size() - 2){
         result.push_back(P[i] + Q[j]);
-        auto cross = (P[i + 1] - P[i]).cross(Q[j + 1] - Q[j]);
-        if(cross >= 0 && i < P.size() - 2)
+        auto cr = cross(P[i + 1] - P[i], Q[j + 1] - Q[j]);
+        if(cr >= 0 && i < P.size() - 2)
             ++i;
-        if(cross <= 0 && j < Q.size() - 2)
+        if(cr <= 0 && j < Q.size() - 2)
             ++j;
     }
     return result;
@@ -776,38 +783,7 @@ vector<pair<int, int>> all_anti_podal(int n, vector<pt> &p) {
 /////////////////////////////////////////////////////////////////////////////
 
 void testCase() {
-      T a,  b;
-      cin >> a>> b;
 
-      T c = sqrt(a *  a    +  b*b) ;
-
-      T B =  asin(b  / c);
-      T A =  asin(  a   / c);
-    //  cout <<A<<" "<<B<<"\n";
-
-
-      for  (int xx=  1  ; xx<=1000 ;  ++xx) {
-         for  (int  yy   =  1 ; yy<=1000 ; ++yy ) {
-                if (xx  *xx +  yy*yy!= a*a)continue;
-                T ang  = asin((T)yy  /  a) ;
-                if(fabs(ang - B) <EPS  || fabs(ang   -  M_PI/2.0)  <EPS  || ang <EPS) continue  ;
-
-                pair < T , T > point ;
-                point   = getPoint(ang - B , c) ;
-                int f = INT(point.first) ,  s = INT(point.second);
-                if (f == 0 || s == 0)
-                       continue;
-                int dx = f - xx , dy = s - yy ;
-                if (dx  *dx   + dy  * dy !=  b  * b)continue;
-                if (f  * f + s* s !=a*a + b*b)continue;
-                cout <<"YES\n";
-                cout <<  0 <<" "<< 0  <<"\n";
-                cout <<xx<<" "<<yy<<"\n";
-                cout << point.first <<" "<<point.second <<"\n";
-                return ;
-         }
-      }
-      cout << "NO\n" ;
 }
 
 int32_t main() {
