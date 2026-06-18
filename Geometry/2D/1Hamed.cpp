@@ -39,7 +39,7 @@ atan2(y ,  x)
 */
 
 
-// const ld M_PI= 3.14159265358979323846;
+ const ld M_PI= 3.14159265358979323846;
 
 /*
  *(x2-x1)^2  +  (y2 -  y1)^2  = r1
@@ -536,7 +536,7 @@ ld maximum_dist_from_polygon_to_polygon(vector<pt> &u, vector<pt> &v){ //O(n)
 }
 ////////////////////////////////mostly here about convex///////////////////////////////////////////
 
-int pointInConvexPolygon(vector<pt> p, pt a) {
+int pointInConvexPolygon(vector<pt>& p, pt a) {  //olog
     int n = p.size();
     assert(n >= 3);
     if (orient(p[0], p[1], a) < -EPS || orient(p[0], p[n - 1], a) > EPS) return -1;
@@ -550,11 +550,11 @@ int pointInConvexPolygon(vector<pt> p, pt a) {
         }
     }
     T area = orient(p[low], p[high], a);
-    if (area < -EPS) return -1; 
+    if (area < -EPS) return -1;
     if (abs(orient(p[0], p[1], a)) <= EPS || abs(orient(p[0], p[n - 1], a)) <= EPS || abs(area) <= EPS) {
-        return 0; 
+        return 0;
     }
-    return 1; 
+    return 1;
 }
 bool cw(pt a, pt b, pt c, bool include_collinear) {
     int o = sgn(orient(a, b, c));
@@ -780,10 +780,54 @@ vector<pair<int, int>> all_anti_podal(int n, vector<pt> &p) {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
+
 
 void testCase() {
+          int  n  ;
+          cin >> n ;
 
+          vector<pt>  p1 , p2 , p3 ;
+          for  (int i = 0 ; i <  n ;  ++i) {
+              int xx , yy ;
+              cin >>xx>>yy;
+              pt p(xx , yy) ;
+              p1.push_back(p) ;
+          }
+
+         cin >> n ;
+         for  (int i = 0 ; i <  n ;  ++i) {
+                int xx , yy ;
+                cin >>xx>>yy;
+                pt p(xx , yy) ;
+                p2.push_back(p) ;
+            }
+
+            cin >> n ;
+            for  (int i = 0 ; i <  n ;  ++i) {
+                int xx , yy ;
+                cin >>xx>>yy;
+                pt p(xx , yy) ;
+                p3.push_back(p) ;
+            }
+
+
+       
+
+       auto rt  =  minkowski(p1,p2) ;
+       rt = minkowski(rt , p3 );
+
+
+        int q;
+        cin >> q ;
+        for (int    i =  0; i  <  q ;  ++i) {
+              int xx , yy ;
+              cin >>xx>>yy;
+              xx*=3 ,  yy*=3 ; 
+              pt p(xx , yy) ;
+              if (pointInConvexPolygon(rt  , p)>=0) {
+                    cout <<"YES\n" ;
+              }else cout <<"NO\n" ;
+        }
 }
 
 int32_t main() {
