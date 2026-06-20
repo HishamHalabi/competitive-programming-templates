@@ -9,7 +9,7 @@ typedef ld T;
 typedef complex < T>  pt ;
 #define x real()
 #define y imag()
-const ld EPS = 1e-6 ;
+const ld EPS = 1e-9 ;
 /*
   ideas
    pararellel  >> same slope
@@ -39,7 +39,7 @@ atan2(y ,  x)
 */
 
 
- const ld M_PI= 3.14159265358979323846;
+  // const ld M_PI= 3.14159265358979323846;
 
 /*
  *(x2-x1)^2  +  (y2 -  y1)^2  = r1
@@ -536,9 +536,24 @@ ld maximum_dist_from_polygon_to_polygon(vector<pt> &u, vector<pt> &v){ //O(n)
 }
 ////////////////////////////////mostly here about convex///////////////////////////////////////////
 
-int pointInConvexPolygon(vector<pt>& p, pt a) {  //olog
+int pointInConvexPolygon(vector<pt>& p, pt a) { // O(log n)
     int n = p.size();
     assert(n >= 3);
+
+    if (n == 3) {
+        T o1 = orient(p[0], p[1], a);
+        T o2 = orient(p[1], p[2], a);
+        T o3 = orient(p[2], p[0], a);
+        if ((o1 < -EPS || o2 < -EPS || o3 < -EPS) && (o1 > EPS || o2 > EPS || o3 > EPS)) {
+            return -1;
+        }
+        if (abs(o1) <= EPS || abs(o2) <= EPS || abs(o3) <= EPS) {
+            return 0;
+        }
+        return 1;
+    }
+
+
     if (orient(p[0], p[1], a) < -EPS || orient(p[0], p[n - 1], a) > EPS) return -1;
     int low = 1, high = n - 1;
     while (high - low > 1) {
@@ -549,6 +564,7 @@ int pointInConvexPolygon(vector<pt>& p, pt a) {  //olog
             high = mid;
         }
     }
+
     T area = orient(p[low], p[high], a);
     if (area < -EPS) return -1;
     if (abs(orient(p[0], p[1], a)) <= EPS || abs(orient(p[0], p[n - 1], a)) <= EPS || abs(area) <= EPS) {
@@ -556,16 +572,38 @@ int pointInConvexPolygon(vector<pt>& p, pt a) {  //olog
     }
     return 1;
 }
+
 bool cw(pt a, pt b, pt c, bool include_collinear) {
     int o = sgn(orient(a, b, c));
     return o < 0 || (include_collinear && o == 0);
+}
+void sortCCW(vector<pt> &v) {
+    if (v.size() <= 2) return;
+    pt c(0, 0);
+    for (auto p : v) c += p;
+    c /= (T)v.size();
+    sort(v.begin(), v.end(), [c](pt a, pt b) {
+        return atan2((a-c).y, (a-c).x) < atan2((b-c).y, (b-c).x);
+    });
+}
+
+//input :counter clock wise  >> output start it from left most point
+void reorder_polygon(vector<pt> & P){
+    size_t pos = 0;
+    for(size_t i = 1; i < P.size(); i++){
+        if(P[i].y < P[pos].y || (P[i].y == P[pos].y && P[i].x < P[pos].x))
+            pos = i;
+    }
+    rotate(P.begin(), P.begin() + pos, P.end());
 }
 
 bool collinear(pt a, pt b, pt c) { return sgn(orient(a, b, c)) == 0; }
 
 //O(nlog)    >> min area convex shape ,  min perim so far
 //input  : random ordered points  ,  ouput   : counter clock wise
+//include_collinear >> dont affect area ,  perim but n of points if need min n points make it false
 void convex_hull(vector<pt>& a, bool include_collinear = false) {
+    if (a.empty())return ;
     pt p0 = *min_element(a.begin(), a.end(), [](pt a, pt b) {
         return make_pair(a.y, a.x) < make_pair(b.y, b.x);
     });
@@ -592,22 +630,15 @@ void convex_hull(vector<pt>& a, bool include_collinear = false) {
 
     if (include_collinear == false && st.size() == 2 && st[0] == st[1])
         st.pop_back();
-
-    a = st;
+    a= st;
+   // sortCCW(a) ;
 }
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//reorder counter clock wise
-void reorder_polygon(vector<pt> & P){
-    size_t pos = 0;
-    for(size_t i = 1; i < P.size(); i++){
-        if(P[i].y < P[pos].y || (P[i].y == P[pos].y && P[i].x < P[pos].x))
-            pos = i;
-    }
-    rotate(P.begin(), P.begin() + pos, P.end());
-}
+
+
 
 //p must be counter clockwise
 //polygon out from summing eacy two points from  p ,q where p ,q are convex and  ouput will be convex hull
@@ -742,96 +773,132 @@ vector<pt> hp_intersect(vector<Halfplane>& H) {
     return ret;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
+struct Antipodals {
+    vector<pt> P; 
+    int n;
 
-vector<pair<int, int>> all_anti_podal(int n, vector<pt> &p) {
-    vector<pair<int, int>> result;
-
-    auto nx = [&](int i){return (i+1)%n;};
-    auto pv = [&](int i){return (i-1+n)%n;};
-
-    // parallel edges should't be visited twice
-    vector<bool> vis(n, false);
-
-    for (int p1 = 0, p2 = 0; p1 < n; ++p1) {
-        // the edge that we are going to consider in this iteration
-        // the datatype is Point, but it acts as a vector
-        pt base = p[nx(p1)] - p[p1];
-
-        // the last condition makes sure that the cross products don't have the same sign
-        while (p2 == p1 || p2 == nx(p1) || sgn(cross(base, p[nx(p2)] - p[p2])) == sgn(cross(base, p[p2] - p[pv(p2)]))) {
-            p2 = nx(p2);
-        }
-
-        if (vis[p1]) continue;
-        vis[p1] = true;
-
-        result.push_back({p1, p2});
-        result.push_back({nx(p1), p2});
-
-        // if both edges from p1 and p2 are parallel to each other
-        if (sgn(cross(base, p[nx(p2)] - p[p2])) == 0) {
-            result.push_back({p1, nx(p2)});
-            result.push_back({nx(p1), nx(p2)});
-            vis[p2] = true;
-        }
+    // The constructor now automatically builds a local convex hull
+    Antipodals(vector<pt> input_pts) {
+        // Run your template's convex_hull locally
+        convex_hull(input_pts, false);
+        P = input_pts;
+        n = P.size();
     }
 
-    return result;
-}
-
-
-
-
-void testCase() {
-          int  n  ;
-          cin >> n ;
-
-          vector<pt>  p1 , p2 , p3 ;
-          for  (int i = 0 ; i <  n ;  ++i) {
-              int xx , yy ;
-              cin >>xx>>yy;
-              pt p(xx , yy) ;
-              p1.push_back(p) ;
-          }
-
-         cin >> n ;
-         for  (int i = 0 ; i <  n ;  ++i) {
-                int xx , yy ;
-                cin >>xx>>yy;
-                pt p(xx , yy) ;
-                p2.push_back(p) ;
+    // 1. Diameter (Max Distance)
+    ld getDiameter() {
+        if (n < 2) return 0; 
+        if (n == 2) return abs(P[0] - P[1]);
+        T mx = 0; int k = 1;
+        while (fabsl(cross(P[n-1]-P[0], P[(k+1)%n]-P[0])) > fabsl(cross(P[n-1]-P[0], P[k]-P[0]))) k = (k+1)%n;
+        for (int i = 0, j = k; i <= k; ++i) {
+            while (fabsl(cross(P[(i+1)%n]-P[i], P[(j+1)%n]-P[i])) > fabsl(cross(P[(i+1)%n]-P[i], P[j]-P[i]))) {
+                j = (j+1)%n; mx = max(mx, sq(P[i]-P[j]));
             }
-
-            cin >> n ;
-            for  (int i = 0 ; i <  n ;  ++i) {
-                int xx , yy ;
-                cin >>xx>>yy;
-                pt p(xx , yy) ;
-                p3.push_back(p) ;
-            }
-
-
-       
-
-       auto rt  =  minkowski(p1,p2) ;
-       rt = minkowski(rt , p3 );
-
-
-        int q;
-        cin >> q ;
-        for (int    i =  0; i  <  q ;  ++i) {
-              int xx , yy ;
-              cin >>xx>>yy;
-              xx*=3 ,  yy*=3 ; 
-              pt p(xx , yy) ;
-              if (pointInConvexPolygon(rt  , p)>=0) {
-                    cout <<"YES\n" ;
-              }else cout <<"NO\n" ;
+            mx = max({mx, sq(P[i]-P[j]), sq(P[(i+1)%n]-P[j])});
         }
+        return sqrtl(mx);
+    }
+
+    // 2. Width (Minimum Thickness)
+    ld getWidth() {
+        if (n < 3) return 0; 
+        ld mn = 1e18;
+        for (int i = 0, j = 1; i < n; ++i) {
+            line l(P[i], P[(i+1)%n]);
+            while (fabsl(cross(l.v, P[(j+1)%n]-P[i])) > fabsl(cross(l.v, P[j]-P[i]))) j = (j+1)%n;
+            mn = min(mn, l.dist(P[j]));
+        }
+        return mn;
+    }
+
+    // 3. Minimum Enclosing Box {Area, Perimeter}
+    pair<ld, ld> getMinBox() {
+        if (n < 3) return {0, 0}; 
+        ld kA = 1e18, kP = 1e18;
+        int top = 1, right = 1, left = 1;
+        for (int i = 0; i < n; ++i) {
+            pt edge = P[(i+1)%n] - P[i]; ld len = abs(edge);
+            while (cross(edge, P[(top+1)%n]-P[i]) > cross(edge, P[top]-P[i])) top = (top+1)%n;
+            while (dot(edge, P[(right+1)%n]-P[i]) > dot(edge, P[right]-P[i])) right = (right+1)%n;
+            if (i == 0) left = right;
+            while (dot(edge, P[(left+1)%n]-P[i]) < dot(edge, P[left]-P[i])) left = (left+1)%n;
+            ld h = cross(edge, P[top]-P[i])/len, w = (dot(edge, P[right]-P[i]) - dot(edge, P[left]-P[i]))/len;
+            kA = min(kA, h*w); kP = min(kP, 2.0*(h+w));
+        }
+        return {kA, kP};
+    }
+
+    // 4. Minimum Distance to Convex Polygon Q
+    ld minDist(vector<pt> Q) {
+        // Ensure target polygon is also a proper convex hull
+        convex_hull(Q, false);
+        int m = Q.size(), p = 0, q = 0;
+        if (n == 0 || m == 0) return 1e18;
+        for(int i = 1; i < n; ++i) if(P[i].y < P[p].y) p = i;
+        for(int i = 1; i < m; ++i) if(Q[i].y > Q[q].y) q = i;
+        ld mn = 1e18;
+        for (int s = 0; s < n + m + 2; ++s) {
+            mn = min(mn, segSeg(P[p], P[(p+1)%n], Q[q], Q[(q+1)%m]));
+            if (cross(P[(p+1)%n]-P[p], Q[q]-Q[(q+1)%m]) < 0) p = (p+1)%n;
+            else q = (q+1)%m;
+        }
+        return mn;
+    }
+
+    // 5. Maximum Distance to Convex Polygon Q
+    ld maxDist(vector<pt> Q) {
+        convex_hull(Q, false);
+        vector<pt> cp = P; 
+        return maximum_dist_from_polygon_to_polygon(cp, Q);
+    }
+
+    // 6. Common Tangents / Bridges with Convex Polygon Q {{upper}, {lower}}
+    pair<pair<int,int>, pair<int,int>> getBridges(vector<pt> Q) {
+        convex_hull(Q, false);
+        int m = Q.size(), p = 0, q = 0;
+        if (n == 0 || m == 0) return {{-1, -1}, {-1, -1}};
+        for (int i = 1; i < n; ++i) if (P[i].x > P[p].x) p = i;
+        for (int i = 1; i < m; ++i) if (Q[i].x < Q[q].x) q = i;
+        
+        int up_p = p, up_q = q; bool ok = 0;
+        while (!ok) { ok = 1;
+            while (sgn(orient(P[up_p], Q[up_q], P[(up_p+1)%n])) > 0) { up_p = (up_p+1)%n; ok = 0; }
+            while (sgn(orient(P[up_p], Q[up_q], Q[(up_q-1+m)%m])) > 0) { up_q = (up_q-1+m)%m; ok = 0; }
+        }
+        int lw_p = p, lw_q = q; ok = 0;
+        while (!ok) { ok = 1;
+            while (sgn(orient(P[lw_p], Q[lw_q], P[(lw_p-1+n)%n])) < 0) { lw_p = (lw_p-1+n)%n; ok = 0; }
+            while (sgn(orient(P[lw_p], Q[lw_q], Q[(lw_q+1)%m])) < 0) { lw_q = (lw_q+1)%m; ok = 0; }
+        }
+        return {{up_p, up_q}, {lw_p, lw_q}};
+    }
+};
+#define int long long
+int n ; 
+void testCase() {
+     vector<pt > pts (n) ; 
+     for (int i  = 0 ; i < n ;  ++i) { 
+          int xx , yy ;
+          cin >> xx >>  yy ; 
+          pt pp(xx ,  yy) ; 
+          pts[i]= pp ; 
+     }
+     
+     Antipodals  A(pts) ; 
+     cout <<fixed << setprecision (2) <<A.getWidth()<<endl ; 
+
+
 }
 
 int32_t main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    testCase();
+   
+
+    int i = 1 ; 
+    while(cin >> n )  { 
+        if  (n == 0 )break ; 
+        cout<<"Case "<<i++<<": " ; 
+        testCase() ; 
+        
+    }
 }
