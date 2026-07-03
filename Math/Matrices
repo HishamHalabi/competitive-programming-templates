@@ -1,66 +1,86 @@
-
 #define int long long
 
-const int mod =  1e9+7;
+using matrix = vector<vector<int>>;
 
-int add(int a , int b){
-
-       return (a+b+mod)%mod;
-}
-
-int mul(int a , int b){
-
-     return ((a%mod + mod)  * (b%mod + mod))%mod ;
-}
-
-
-typedef vector<vector<int> >  matrix;
-
-matrix operator * (const matrix &lhs ,  const matrix & rhs){
-
-      int n = lhs.size();
-    int m = rhs[0].size();
-    int s1 = lhs[0].size(), s2 = rhs.size();
-    assert(s1 == s2);
-    matrix ret(n, vector<int>(m));
-    for (int i = 0; i < n; ++i)
-        for (int j = 0; j < s1; ++j)
-            for (int k = 0; k < m; ++k)
-                ret[i][k] = add(ret[i][k], mul(lhs[i][j], rhs[j][k]));
-    return ret;
-
-}
-
-matrix Identity(int n){      //A*Idn = Idn  A
-       matrix Idn (n ,  vector<int> (n));
-
-       for (int i = 0 ; i < n ; ++i){
-                Idn[i][i]=1;
-       }
-
-
-       return Idn ;
-
-}
 /*
-         matrix mul is asscioative
-         A *   B * C =  (A * B) * C
-         
-         
+    Matrix multiplication over a semiring.
+
+    C[i][j] = add over k ( A[i][k] mul B[k][j] )
+
+    Requirements:
+      - add is associative.
+      - mul is associative.
+      - mul distributes over add.
+
+    To change the algebra, modify ONLY:
+
+      add()
+      mul()
+      ADD_ID
+      MUL_ID
 */
-matrix m_power(matrix m , int p){
 
-       matrix  res  =  Identity (m.size());
+//======================== CHANGE THESE ========================//
 
-       while(p){
-            if  (p&1)
-                   res =  res  * m ;
+const int INF = (int)4e18;
 
-            m = m * m ;
-            p/=2;
-       }
+//set this tp Neutral elemnt of operation1
+const int ADD_ID = 0;
 
-       return res;
+//set this to Neutral elemnt of oper2
+const int MUL_ID = 1;
 
+// oper1
+inline int add(int a, int b){
+    return a + b; //>> min(a,b)
+}
+//oper2
+inline int mul(int a, int b){
+    return a * b;  //+
+}
 
+//==============================================================//
+
+matrix operator*(const matrix &A, const matrix &B){
+
+    int n = A.size();
+    int m = B[0].size();
+    int p = A[0].size();
+
+    assert(p == (int)B.size());
+
+    matrix C(n, vector<int>(m, ADD_ID));
+
+    for(int i=0;i<n;i++)
+        for(int k=0;k<p;k++)
+            for(int j=0;j<m;j++)
+                C[i][j] = add(C[i][j], mul(A[i][k], B[k][j]));
+
+    return C;
+}
+
+matrix Identity(int n){
+
+    matrix I(n, vector<int>(n, ADD_ID));
+
+    for(int i=0;i<n;i++)
+        I[i][i]=MUL_ID;
+
+    return I;
+}
+
+matrix power(matrix A,long long e){
+
+    matrix res = Identity(A.size());
+
+    while(e){
+
+        if(e&1)
+            res = res*A;
+
+        A = A*A;
+        e >>= 1;
+    }
+
+    return res;
 }
