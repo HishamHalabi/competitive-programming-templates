@@ -1,0 +1,200 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+
+
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace __gnu_pbds;
+
+// Template definition for ordered_set
+template<typename T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+
+// #define F first
+// #define S second
+#define all(a) a.begin() , a.end()
+#define ld long double
+
+
+struct  item  {
+    bool operator<(const item& other) const {
+        return 2 < 3;
+    }
+};
+
+#define ll int
+ll random_int(ll l , ll r){
+    static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
+    return uniform_int_distribution<ll>(l,r)(rng);
+}
+
+
+
+
+template<int mod>
+struct Mint {
+  int x;
+  Mint() : x(0) {}
+  Mint(ll x_) : x(x_ % mod) { if (x < 0) x += mod; }
+  Mint& operator += (Mint b) { if ((x += b.x) >= mod) x -= mod; return *this;}
+  Mint& operator -= (Mint b) { if ((x -= b.x) < 0) x += mod; return *this;}
+  Mint& operator *= (Mint b) { x = (ll)(x) * b.x % mod; return *this;}
+  Mint pow(ll e) const {
+		Mint r = 1;
+		for (Mint b = *this; e; b *= b, e >>= 1)
+			if (e & 1) r *= b;
+    return r;
+  }
+  Mint inv() { return pow(mod - 2); }
+  Mint& operator /= (Mint b) { return *this *= b.inv(); }
+  friend Mint operator +  (Mint a, Mint b) { return a += b;     }
+  friend Mint operator -  (Mint a, Mint b) { return a -= b;     }
+  friend Mint operator /  (Mint a, Mint b) { return a /= b;     }
+  friend Mint operator * (Mint a, Mint b) { return a *= b;     }
+  friend bool operator == (Mint a, Mint b) { return a.x == b.x; }
+  friend bool operator != (Mint a, Mint b) { return a.x != b.x; }
+};
+
+typedef Mint<1000000007> mint;
+
+int Bit(int mask , int bitIndx){ //val[bit]
+   return ((mask >> bitIndx) & 1LL) == 1LL;
+}
+
+void Set(int &mask , int bitIndx , int val){
+  if (!val)
+    mask = mask & ~(1LL << bitIndx);
+  else
+    mask = mask | (1LL << bitIndx);
+}
+
+
+#define T long double
+// const T M_PI = 3.14159265358979323846;
+
+
+
+void testCase()   {
+ 
+
+
+    int n  , m  ; 
+    cin >> n >> m ;
+    
+    
+    std::vector<vector <  int >>  g   =  vector <vector < int >> (n+1);
+    
+    for  (int  i = 1; i <=m ; ++i) {
+        int  u , v; 
+        cin >> u >> v; 
+        g[u].push_back(v);
+        g[v].push_back(u) ; 
+       
+    }
+    
+    
+    vector< vector <int  >  > dis(n+1);
+    vector  <vector  < pair <  int  , int >>>par(n+1 , vector < pair< int, int >  > (3 ,{-1,-1})) ; 
+    
+    std::queue<pair < int , int > >q ; 
+    q.push({1, 0}) ; 
+    dis[1].push_back(0) ; 
+    
+    while(q.size()) { 
+        auto [nd , pth] = q.front(); 
+        q.pop() ;
+       
+        int current_state = 0;
+        if (dis[nd].size() > 1 && dis[nd][1] == pth) {
+            current_state = 1;
+        }
+
+        for (auto ch :g[nd]) {
+               if (dis[ch].size() == 2)continue ;
+               
+               if (par[nd][current_state + 1].first == ch) continue;
+
+               dis[ch].push_back(pth+1);
+               par[ch][dis[ch].size()]  = {nd, current_state + 1}; 
+               q.push({ch , pth+1}); 
+        }
+    }
+    
+    
+    int mn =  1e9 ; 
+    for (int i  =2; i <=n;  ++i){
+             if (dis[i].size()   >1) {
+                 mn = min(mn,dis[i][0]  + dis[i][1]) ;
+             }
+    }
+    
+    
+    if (mn > 1e7)  {
+        cout<<"impossible\n" ; 
+        return ; 
+    }
+ 
+
+    
+    for (int i  =2; i <=n;  ++i){
+             if (dis[i].size()   >1 and dis[i][0] +  dis[i][1] == mn) {
+                 
+                 vector < int > path1 ; 
+                 pair<int, int> cur = {i, 1};
+                 while(cur.first != -1) {
+                     path1.push_back(cur.first) ; 
+                     cur = par[cur.first][cur.second] ; 
+                 }
+                 std::reverse(path1.begin(), path1.end());
+                 
+                 vector < int > path2 ;
+                 cur = {i, 2};
+                 while(cur.first != -1) {
+                     path2.push_back(cur.first) ; 
+                     cur = par[cur.first][cur.second] ; 
+                 }
+                 
+                
+                 vector<int> path = path1;
+                 for (int j = 1; j < (int)path2.size(); ++j) {
+                     path.push_back(path2[j]);
+                 }
+                 
+                 cout << mn <<"\n" ; 
+                 for (auto nd : path) cout<<nd<<" ";
+                 cout<<"\n" ; 
+                 return ;
+                 
+             }
+    }
+    
+   
+}
+
+
+
+
+
+
+
+int32_t main() {
+    
+    
+    
+    ios_base::sync_with_stdio(0) ;
+    cin.tie(0 ) ;
+    
+    
+ 
+    
+    
+     long long tc  =1;
+    // cin >> tc ;
+     while(tc-- )   {
+          testCase() ;
+     }
+}
