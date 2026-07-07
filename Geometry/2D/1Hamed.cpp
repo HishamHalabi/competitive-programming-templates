@@ -108,8 +108,15 @@ pt scale(pt v , T sc)  {
     return {v.x*sc ,  v.y  *sc}  ;
 }
 
+/*
+v1(x1,y1)
+v2(x2,y2)
+x2=  x1  * cos (a)  - y1 sin(a)
+y2=  x1  * sin (a)  + y1 cos(a)
 
-pt rot(pt p, pt c, ld a){
+if (abs(v1)=1) >>abs(v2) =1 >>useful for one movement as easy to set v1 but hard v2 hence it;s the transiton
+
+*/pt rot(pt p, pt c, ld a){
     pt v = p - c;
     pt rotate = {cos(a), sin(a)};
     return c + rotate * v;
