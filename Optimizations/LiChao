@@ -1,0 +1,129 @@
+/*
+   Basic Idea of CHT  (Convex hull trick)
+         considering lines  , delting uncessary segments
+         the remaining part is the upper or lower part of convex hull 
+         so it's like sine wave >> we can do ternary search on it 
+
+*/
+//CHT support add online only
+// Set IS_MAX = true for maximum queries, false for minimum queries
+template<bool IS_MAX = true>
+struct CHT {
+    struct Line {
+        mutable long long k, m, p;
+        bool operator<(const Line& o) const { return IS_MAX ? k < o.k : k > o.k; }
+        bool operator<(long long x) const { return p < x; }
+    };
+    
+    struct Container : multiset<Line, less<>> {
+        static const long long inf = LLONG_MAX;
+        long long div(long long a, long long b) { return a / b - ((a ^ b) < 0 && a % b); }
+        
+        bool isect(iterator x, iterator y) {
+            if (y == end()) { x->p = inf; return false; }
+            if (x->k == y->k) x->p = (IS_MAX ? x->m > y->m : x->m < y->m) ? inf : -inf;
+            else x->p = div(y->m - x->m, x->k - y->k);
+            return x->p >= y->p;
+        }
+        
+        void add(long long k, long long m) {
+            auto z = insert({k, m, 0}), y = z++, x = y;
+            while (isect(y, z)) z = erase(z);
+            if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
+            while ((y = x) != begin() && (--x)->p >= y->p) isect(x, erase(y));
+        }
+        
+        long long query(long long x) {
+            auto l = *lower_bound(x);
+            return l.k * x + l.m;
+        }
+    } container;
+
+    void add(long long k, long long m) { container.add(k, m); }
+    long long query(long long x) { return container.query(x); }
+};
+
+//LI Chao tree  add  ,delete online 
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Set IS_MAX = true for maximum queries, false for minimum queries
+template<bool IS_MAX = true, long long MIN_X = -1000000000, long long MAX_X = 1000000000>
+struct LiChao {
+    static const long long INF = 4e18;
+    struct Line {
+        long long k, m; int id;
+        long long eval(long long x) const { return k * x + m; }
+    };
+
+    struct Node {
+        Line line = {0, IS_MAX ? -INF : INF, -1};
+        int l = -1, r = -1;
+    };
+
+    vector<Node> tree;
+    vector<bool> deleted;
+
+    LiChao() { tree.push_back(Node()); }
+
+    bool better(Line a, Line b, long long x) {
+        if (b.id != -1 && deleted[b.id]) return true;
+        if (a.id != -1 && deleted[a.id]) return false;
+        return IS_MAX ? a.eval(x) > b.eval(x) : a.eval(x) < b.eval(x);
+    }
+
+    void add_line(int idx, long long l, long long r, Line nw) {
+        long long mid = l + (r - l) / 2;
+        bool b_mid = better(nw, tree[idx].line, mid);
+        bool b_l = better(nw, tree[idx].line, l);
+        if (b_mid) swap(tree[idx].line, nw);
+        if (l == r || nw.id == -1 || (nw.id != -1 && deleted[nw.id])) return;
+        if (b_l != b_mid) {
+            if (tree[idx].l == -1) { tree[idx].l = tree.size(); tree.push_back(Node()); }
+            add_line(tree[idx].l, l, mid, nw);
+        } else {
+            if (tree[idx].r == -1) { tree[idx].r = tree.size(); tree.push_back(Node()); }
+            add_line(tree[idx].r, mid + 1, r, nw);
+        }
+    }
+
+    long long query(int idx, long long l, long long r, long long x) {
+        if (idx == -1) return IS_MAX ? -INF : INF;
+        long long cur = (tree[idx].line.id != -1 && !deleted[tree[idx].line.id]) ? tree[idx].line.eval(x) : (IS_MAX ? -INF : INF);
+        if (l == r) return cur;
+        long long mid = l + (r - l) / 2;
+        if (x <= mid) return IS_MAX ? max(cur, query(tree[idx].l, l, mid, x)) : min(cur, query(tree[idx].l, l, mid, x));
+        else return IS_MAX ? max(cur, query(tree[idx].r, mid + 1, r, x)) : min(cur, query(tree[idx].r, mid + 1, r, x));
+    }
+
+    // Public API
+    int add(long long k, long long m) {
+        int id = deleted.size(); deleted.push_back(false);
+        add_line(0, MIN_X, MAX_X, {k, m, id});
+        return id;
+    }
+    void del(int id) { if (id >= 0 && id < deleted.size()) deleted[id] = true; }
+    long long query(long long x) { return query(0, MIN_X, MAX_X, x); }
+};
+
+
+/////how to use 
+int main() {
+    // 1. Min CHT Example
+    CHT<false> min_cht; 
+    min_cht.add(2, 3); // y = 2x + 3
+    min_cht.add(-1, 10); // y = -x + 10
+    // query(5) -> min(13, 5) = 5
+    
+    // 2. Max LiChao Tree with deletion Example
+    LiChao<true> max_lc;
+    int l1 = max_lc.add(2, 5);  // y = 2x + 5
+    int l2 = max_lc.add(-1, 20); // y = -x + 20
+    
+    cout << max_lc.query(4) << "\n"; // Output: 16 (from l2)
+    max_lc.del(l2);
+    cout << max_lc.query(4) << "\n"; // Output: 13 (reverts back to l1 safely)
+}
