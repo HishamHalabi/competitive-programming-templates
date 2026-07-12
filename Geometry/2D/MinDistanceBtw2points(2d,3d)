@@ -1,0 +1,106 @@
+#define int long long
+struct   event {
+    pt p ;
+    event(pt p ) {
+        this->p = p;
+    }
+    bool operator <  (const event &other) const {
+        return p.x  <  other.p.x;
+    }
+};
+ 
+void testCase() {
+    int  n ;
+    cin >>  n ;
+ 
+    vector<event>events ;
+    for  (int i = 0 ; i    < n   ;  ++i) {
+         int xx , yy ;
+         cin >>xx >> yy  ;
+         pt p(xx ,  yy) ;
+         event ev(p) ;
+         events.push_back(ev) ;
+    }
+ 
+    sort (events.begin(), events.end());
+ 
+    T ans  = 4e9  ;
+    int  l = 0 ;
+    multiset<pair < T , T >  > points ;
+    for  (int  i = 0 ; i  <   n ;   ++i) {
+               while (l+1  <=i  and fabs(events[i].p.x    -  events[l].p.x)    >  ans) {
+                   points.erase(points.find({events[l].p.y  , events[l].p.x}));
+                   l  ++  ;
+               }
+ 
+              auto st = points.lower_bound({events[i].p.y-ans-1  , -1e9})  ;
+              auto en = points.upper_bound({events[i].p.y+ans+2  , -1e9})  ;
+ 
+               while (st != en) {
+                   pt p(st->second , st->first);
+                  // cout <<i<<" "<<events[i].p.x << " " << events[i].p.y << " " <<p.x <<" "<<p.y<<"" << abs(events[i].p  -  p) << endl;
+                   ans = min(ans    ,  abs(events[i].p  -  p)) ;
+                   st ++  ;
+               }
+      //  cout << ans <<"\n"  ;
+               points.insert({events[i].p.y , events[i].p.x});
+    }
+    T ret  =   ans   *  ans ;
+    int v1 = ret + EPS;
+    int v2 = ret - EPS ;
+    cout <<max(v1,v2)<<"\n" ;
+ 
+}////////////////////////////////////////////////
+#define int long long
+struct   event {
+    pt p  ;
+    T z; 
+    event(pt p  ,  T z) {
+        this->p = p;
+        this->z = z;
+    }
+    bool operator <  (const event &other) const {
+        return p.x  <  other.p.x;
+    }
+};
+ 
+void testCase() {
+    int  n ;
+    cin >>  n ;
+ 
+    vector<event>events ;
+    for  (int i = 0 ; i    < n   ;  ++i) {
+         T xx , yy ,zz;
+         cin >>xx >> yy  >>zz ;
+         pt p(xx ,  yy) ;
+         event ev(p ,zz) ;
+         events.push_back(ev) ;
+    }
+ 
+    sort (events.begin(), events.end());
+ 
+    T ans  = 4e18  ;
+    int  l = 0 ;
+    multiset<pair < T , pair< T,T >  >  > points ;
+    for  (int  i = 0 ; i  <   n ;   ++i) {
+               while (l+1  <=i  and fabs(events[i].p.x    -  events[l].p.x)    >  ans){
+                   points.erase(points.find({events[l].p.y  , {events[l].p.x , events[l].z}}));
+                   l  ++  ;
+               }
+ 
+              auto st = points.lower_bound({events[i].p.y-ans-1  , {-1e10 ,-1e10 }})  ;
+              auto en = points.upper_bound({events[i].p.y+ans+2  ,  {-1e10 ,-1e10 }})  ;
+ 
+              while (st != en) {
+                   T dx   =  (st->second.first   -  events[i].p.x);
+                   T dy =  (st->first   -  events[i].p.y);
+                   T dz = (st->second.second   -  events[i].z) ;
+                   ans = min(ans    ,  sqrt(dx * dx + dy  *dy   + dz*dz)) ;
+                   st ++  ;
+              }
+              points.insert({events[i].p.y ,{ events[i].p.x , events[i].z}});
+    }
+  
+    cout <<fixed << setprecision(9)<<ans<<"\n" ;
+ 
+}
