@@ -1,0 +1,110 @@
+
+//**
+temp1 >>  fast check  O(n+m)
+temp2  >>  slow n *  (n+m)  but gives you reach[i][j] means failed pairs  ,it helps to break satisfication
+
+**/
+
+struct TwoSAT {
+    int n;
+    vector<vector<int>> adj, adj_rev;
+    vector<bool> vis, ans;
+    vector<int> ord, comp;
+
+    TwoSAT(int n) : n(n), adj(2*n+2), adj_rev(2*n+2), vis(2*n+2), comp(2*n+2, -1), ans(n+1) {}
+
+    int id(int u, bool p) { return 2 * u + !p; }
+
+    void add_edge(int u, bool p1, int v, bool p2) {
+        int x = id(u, p1), y = id(v, p2);
+        adj[x].push_back(y); adj_rev[y].push_back(x);
+    }
+
+    void add_clause(int u, bool p1, int v, bool p2) {
+        add_edge(u, !p1, v, p2);
+        add_edge(v, !p2, u, p1);
+    }
+
+    void dfs1(int v) {
+        vis[v] = 1;
+        for (int u : adj[v]) if (!vis[u]) dfs1(u);
+        ord.push_back(v);
+    }
+
+    void dfs2(int v, int cl) {
+        comp[v] = cl;
+        for (int u : adj_rev[v]) if (comp[u] == -1) dfs2(u, cl);
+    }
+
+    bool solve() {
+        for (int i = 2; i <= 2 * n + 1; ++i) if (!vis[i]) dfs1(i);
+        int cl = 0;
+        for (int i = 2 * n + 1; i >= 0; --i) {
+            if (comp[ord[i]] == -1) dfs2(ord[i], cl++);
+        }
+        for (int i = 1; i <= n; ++i) {
+            if (comp[2 * i] == comp[2 * i + 1]) return false;
+            ans[i] = comp[2 * i] > comp[2 * i + 1];
+        }
+        return true;
+    }
+};
+///////////////temp 2////////////
+struct TwoSATReach {
+    int n;
+    vector<vector<int>> adj;
+    // reach[x][y] is true if literal x can reach literal y
+    vector<vector<bool>> reach;
+
+    TwoSATReach(int n) : n(n), adj(2 * n + 2), reach(2 * n + 2, vector<bool>(2 * n + 2, false)) {}
+
+    // Maps variable u and its polarity p to a unique graph node index
+    // p = true for positive (u), p = false for negated (~u)
+    int id(int u, bool p) { return 2 * u + !p; }
+
+    // Adds a directed implication edge: (u == p1) -> (v == p2)
+    void add_edge(int u, bool p1, int v, bool p2) {
+        int x = id(u, p1), y = id(v, p2);
+        adj[x].push_back(y);
+    }
+
+    // Adds a standard disjunction clause (u == p1 || v == p2)
+    void add_clause(int u, bool p1, int v, bool p2) {
+        add_edge(u, !p1, v, p2);
+        add_edge(v, !p2, u, p1);
+    }
+
+    // Helper DFS to compute reachability from a starting node
+    void dfs(int start, int curr) {
+        reach[start][curr] = true;
+        for (int next : adj[curr]) {
+            if (!reach[start][next]) {
+                dfs(start, next);
+            }
+        }
+    }
+
+    // Computes reachability pairs for the entire implication graph
+    // Time Complexity: O(N * (N + M))
+    void compute_reachability() {
+        for (int i = 2; i <= 2 * n + 1; ++i) {
+            fill(reach[i].begin(), reach[i].end(), false);
+            dfs(i, i);
+        }
+    }
+
+    // Checks if a specific literal can reach another literal
+    bool can_reach(int u, bool p1, int v, bool p2) {
+        return reach[id(u, p1)][id(v, p2)];
+    }
+
+    // Checks if the current 2-SAT instance is satisfiable
+    bool is_satisfiable() {
+        for (int i = 1; i <= n; ++i) {
+            if (can_reach(i, true, i, false) && can_reach(i, false, i, true)) {
+                return false; // Loop exists: i -> ~i and ~i -> i
+            }
+        }
+        return true;
+    }
+};
