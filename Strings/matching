@@ -1,0 +1,421 @@
+The first is offline given x  (log n query)  for 1e5 query it's ok more than this it's bad
+second given x and y  quey substring  y[l...r] in x   >>query log
+third given x >> answer query how many times string y occur in x with O(y)
+the second is (sqrt for update and query)
+
+
+using namespace std;
+struct HashPair {
+    long long h1, h2;
+    int query_L = -1;
+    const string* src_str = nullptr;
+    const void* hm_ptr = nullptr;
+ 
+    bool operator==(const HashPair& o) const { return h1 == o.h1 && h2 == o.h2; }
+    bool operator<(const HashPair& o) const { return h1 == o.h1 ? h2 < o.h2 : h1 < o.h1; }
+};
+ 
+struct HashManager {
+    const long long MOD1 = 1e9 + 7;
+    const long long MOD2 = 1e9 + 9;
+    const long long B1 = 313;
+    const long long B2 = 317;
+ 
+    vector<long long> p1, p2;
+    vector<long long> pref1, pref2;
+    const string* base_string = nullptr;
+ 
+    void init(const string& s) {
+        base_string = &s;
+        int n = s.length();
+        p1.assign(n + 1, 1); p2.assign(n + 1, 1);
+        pref1.assign(n + 1, 0); pref2.assign(n + 1, 0);
+ 
+        for (int i = 0; i < n; i++) {
+            p1[i + 1] = (p1[i] * B1) % MOD1;
+            p2[i + 1] = (p2[i] * B2) % MOD2;
+            pref1[i + 1] = (pref1[i] * B1 + s[i]) % MOD1;
+            pref2[i + 1] = (pref2[i] * B2 + s[i]) % MOD2;
+        }
+    }
+ 
+    HashPair get_hash(int L, int R) {
+        if (L > R || L < 0 || base_string == nullptr || R >= (int)base_string->length()) 
+            return {0, 0, -1, nullptr, nullptr};
+        long long h1 = (pref1[R + 1] - (pref1[L] * p1[R - L + 1]) % MOD1) % MOD1;
+        long long h2 = (pref2[R + 1] - (pref2[L] * p2[R - L + 1]) % MOD2) % MOD2;
+        if (h1 < 0) h1 += MOD1;
+        if (h2 < 0) h2 += MOD2;
+        
+        return {h1, h2, L, base_string, this};
+    }
+};
+ 
+struct SFX {
+    int n;
+    string text;
+    vector<int> sa;
+ 
+    void build(const string& s) {
+        this->n = s.length();
+        this->text = s;
+        string temp = s + '$';
+        int N = temp.length();
+        vector<int> p(N), c(N);
+        {
+            vector<pair<char, int>> a(N);
+            for (int i = 0; i < N; i++) a[i] = {temp[i], i};
+            sort(a.begin(), a.end());
+            for (int i = 0; i < N; i++) p[i] = a[i].second;
+            c[p[0]] = 0;
+            for (int i = 1; i < N; i++) {
+                c[p[i]] = (a[i].first == a[i - 1].first) ? c[p[i - 1]] : c[p[i - 1]] + 1;
+            }
+        }
+        int k = 0;
+        while ((1 << k) < N) {
+            vector<int> p_next(N);
+            for (int i = 0; i < N; i++) {
+                p_next[i] = p[i] - (1 << k);
+                if (p_next[i] < 0) p_next[i] += N;
+            }
+            vector<int> head(N, 0);
+            for (int i = 0; i < N; i++) head[c[i]]++;
+            vector<int> pref(N, 0);
+            for (int i = 1; i < N; i++) pref[i] = pref[i - 1] + head[i - 1];
+            for (int x : p_next) {
+                int i = c[x];
+                p[pref[i]] = x;
+                pref[i]++;
+            }
+            vector<int> c_next(N);
+            c_next[p[0]] = 0;
+            for (int i = 1; i < N; i++) {
+                pair<int, int> prev = {c[p[i - 1]], c[(p[i - 1] + (1 << k)) % N]};
+                pair<int, int> curr = {c[p[i]], c[(p[i] + (1 << k)) % N]};
+                c_next[p[i]] = (prev == curr) ? c_next[p[i - 1]] : c_next[p[i - 1]] + 1;
+            }
+            c = move(c_next);
+            k++;
+        }
+ 
+        this->sa.resize(this->n);
+        for (int i = 0; i < this->n; i++) {
+            this->sa[i] = p[i + 1];
+        }
+    }
+ 
+    // High performance O(log N) check unpacking the string metadata inside target_hash
+    bool count_hash_occurrences(HashPair target_hash, int len) {
+        if (len <= 0) return true;
+        
+        int y_start = target_hash.query_L;
+        const string* target_str = target_hash.src_str;
+        if (!target_str) return false;
+ 
+        int low = 0, high = n - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            int start_pos = sa[mid];
+ 
+            // Direct highly optimized character range compare matching
+            int len_to_check = min(n - start_pos, len);
+            int cmp = text.compare(start_pos, len_to_check, *target_str, y_start, len);
+ 
+            if (cmp == 0) {
+                if (len_to_check == len) return true; // Found the substring match!
+                low = mid + 1; // Text ended early, look higher up alphabetically
+            } else if (cmp < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return false;
+    }
+};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct SAAM {
+    int N, sz, lst, lg;
+    vector<vector<int>> nxt, up;
+    vector<int> lnk, len, cnt;
+    vector<int> match_len, match_node;
+ 
+    // Call this with 0-indexed strings X and Y
+    void init(const string& x, const string& y) {
+        N = x.size();
+        int mx = 2 * N + 5;
+        lg = 32 - __builtin_clz(mx);
+        
+        nxt.assign(mx, vector<int>(26, 0));
+        up.assign(mx, vector<int>(lg, 0));
+        lnk.assign(mx, 0); len.assign(mx, 0); cnt.assign(mx, 0);
+        
+        lnk[0] = -1; sz = 1; lst = 0;
+ 
+        // 1. Build Suffix Automaton for X
+        for (char c : x) {
+            int cur = sz++, p = lst, id = c - 'a';
+            len[cur] = len[p] + 1; cnt[cur] = 1;
+            while (p != -1 && !nxt[p][id]) nxt[p][id] = cur, p = lnk[p];
+            if (p == -1) lnk[cur] = 0;
+            else {
+                int q = nxt[p][id];
+                if (len[p] + 1 == len[q]) lnk[cur] = q;
+                else {
+                    int cl = sz++; len[cl] = len[p] + 1;
+                    nxt[cl] = nxt[q]; lnk[cl] = lnk[q];
+                    while (p != -1 && nxt[p][id] == q) nxt[p][id] = cl, p = lnk[p];
+                    lnk[q] = lnk[cur] = cl;
+                }
+            }
+            lst = cur;
+        }
+ 
+        // 2. Compute accurate match frequencies via Radix/Length Sort
+        vector<int> o(sz); iota(o.begin(), o.end(), 0);
+        sort(o.begin(), o.end(), [&](int a, int b) { return len[a] > len[b]; });
+        for (int u : o) if (lnk[u] != -1) cnt[lnk[u]] += cnt[u];
+ 
+        // 3. Build Binary Lifting Table over Suffix Links
+        for (int i = 0; i < sz; i++) up[i][0] = (lnk[i] == -1 ? 0 : lnk[i]);
+        for (int j = 1; j < lg; j++) {
+            for (int i = 0; i < sz; i++) {
+                up[i][j] = up[up[i][j - 1]][j - 1];
+            }
+        }
+ 
+        // 4. Precalculate the continuous matching sequence of Y on X
+        int m = y.size();
+        match_len.assign(m, 0); match_node.assign(m, 0);
+        int u = 0, cur_l = 0;
+        for (int i = 0; i < m; i++) {
+            int id = y[i] - 'a';
+            while (u != -1 && !nxt[u][id]) {
+                u = lnk[u];
+                if (u != -1) cur_l = len[u];
+            }
+            if (u == -1) { u = 0; cur_l = 0; }
+            else { u = nxt[u][id]; cur_l++; }
+            match_len[i] = cur_l;
+            match_node[i] = u;
+        }
+    }
+ 
+    // Jumps up to locate the exact node grouping corresponding to the length scope
+    int get_state(int node, int target_len) {
+        for (int i = lg - 1; i >= 0; i--) {
+            if (len[up[node][i]] >= target_len) {
+                node = up[node][i];
+            }
+        }
+        return node;
+    }
+ 
+    // Expects STRICTLY 0-indexed query boundaries [l, r] from string Y
+    int query(int l, int r) {
+        if (l > r || l < 0 || r >= (int)match_len.size()) return 0;
+        int target_len = r - l + 1;
+ 
+        // If the max match ending at r is shorter than the window, it does not exist in X
+        if (match_len[r] < target_len) return 0;
+ 
+        int target_node = get_state(match_node[r], target_len);
+        return cnt[target_node];
+    }
+};
+////////////////////////////////////////////////////////////
+struct DynamicStringCounter {
+    int N, sz, lst;
+    vector<vector<int>> nxt;
+    vector<int> lnk, len, cnt;
+
+    // Initialize and build the Suffix Automaton on string X
+    void init(const string& x) {
+        N = x.size();
+        int mx = 2 * N + 5;
+        
+        nxt.assign(mx, vector<int>(26, 0));
+        lnk.assign(mx, 0); len.assign(mx, 0); cnt.assign(mx, 0);
+        
+        lnk[0] = -1; sz = 1; lst = 0;
+
+        for (char c : x) {
+            int cur = sz++, p = lst, id = c - 'a';
+            len[cur] = len[p] + 1; cnt[cur] = 1;
+            while (p != -1 && !nxt[p][id]) nxt[p][id] = cur, p = lnk[p];
+            if (p == -1) lnk[cur] = 0;
+            else {
+                int q = nxt[p][id];
+                if (len[p] + 1 == len[q]) lnk[cur] = q;
+                else {
+                    int cl = sz++; len[cl] = len[p] + 1;
+                    nxt[cl] = nxt[q]; lnk[cl] = lnk[q];
+                    while (p != -1 && nxt[p][id] == q) nxt[p][id] = cl, p = lnk[p];
+                    lnk[q] = lnk[cur] = cl;
+                }
+            }
+            lst = cur;
+        }
+
+        // Compute exact match frequencies via topological / length sorting
+        vector<int> o(sz); iota(o.begin(), o.end(), 0);
+        sort(o.begin(), o.end(), [&](int a, int b) { return len[a] > len[b]; });
+        for (int u : o) if (lnk[u] != -1) cnt[lnk[u]] += cnt[u];
+    }
+
+    // Answers the query for a completely arbitrary string Y in O(|Y|) time
+    int query(const string& y) {
+        int u = 0;
+        for (char c : y) {
+            int id = c - 'a';
+            u = nxt[u][id];
+            if (!u) return 0; // If transition fails, Y does not exist in X
+        }
+        return cnt[u];
+    }
+};
+////////////////////////////////////////////////With Updates//////////////////////////////////////////////
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cmath>
+#include <unordered_map>
+#include <algorithm>
+
+using namespace std;
+
+// Custom hash function for pair/struct if using double hashing
+struct SafeHash {
+    static uint64_t splitmix64(uint64_t x) {
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+    size_t operator()(uint64_t x) const {
+        static const uint64_t FIXED_RANDOM = 123456789; // use random_device in real contest
+        return splitmix64(x + FIXED_RANDOM);
+    }
+};
+
+struct DynamicPatternCounter {
+    int n, block_size, num_blocks;
+    string text;
+    
+    const long long MOD = 1e9 + 7;
+    const long long BASE = 313;
+    vector<long long> power;
+
+    // A hash map per block storing: Substring_Hash -> Frequency
+    vector<unordered_map<long long, int, SafeHash>> block_hashes;
+
+    void init(const string& s) {
+        text = s;
+        n = text.length();
+        block_size = sqrt(n) + 1;
+        num_blocks = (n + block_size - 1) / block_size;
+        
+        power.assign(n + 1, 1);
+        for (int i = 0; i < n; i++) power[i + 1] = (power[i] * BASE) % MOD;
+
+        block_hashes.resize(num_blocks);
+        for (int i = 0; i < num_blocks; i++) {
+            rebuild_block(i);
+        }
+    }
+
+    // Recomputes all unique substring hashes inside a single block in O(B^2)
+    void rebuild_block(int b_idx) {
+        block_hashes[b_idx].clear();
+        int L = b_idx * block_size;
+        int R = min(n - 1, L + block_size - 1);
+
+        // Compute local rolling hashes inside this block
+        for (int i = L; i <= R; i++) {
+            long long current_hash = 0;
+            for (int j = i; j <= R; j++) {
+                current_hash = (current_hash * BASE + text[j]) % MOD;
+                block_hashes[b_idx][current_hash]++;
+            }
+        }
+    }
+
+    // O(sqrt(N)) Character Update
+    void update_char(int idx, char c) {
+        if (text[idx] == c) return;
+        text[idx] = c;
+        int b_idx = idx / block_size;
+        rebuild_block(b_idx); // local rebuild
+    }
+
+    // Helper to extract a rolling hash from a raw substring window manually
+    long long compute_raw_hash(int L, int R) {
+        long long h = 0;
+        for(int i = L; i <= R; i++) h = (h * BASE + text[i]) % MOD;
+        return h;
+    }
+
+    // O(sqrt(N)) Count Query using ONLY a hash and length
+    int count_occurrences(long long target_hash, int len) {
+        if (len > n) return 0;
+        int total_count = 0;
+
+        // 1. Count instances completely contained inside blocks
+        for (int i = 0; i < num_blocks; i++) {
+            int L = i * block_size;
+            int R = min(n - 1, L + block_size - 1);
+            int available = R - L + 1;
+
+            if (len <= available) {
+                if (block_hashes[i].count(target_hash)) {
+                    total_count += block_hashes[i][target_hash];
+                }
+            }
+        }
+
+        // 2. Count instances crossing block boundaries manually
+        // We look at windows of size 'len' that straddle across block edges
+        for (int i = 0; i < num_blocks - 1; i++) {
+            int boundary_idx = (i * block_size) + block_size - 1; // last element of block i
+            
+            // The window must cover boundary_idx and boundary_idx + 1
+            int start_min = max(0, boundary_idx - len + 1);
+            int start_max = min(boundary_idx, n - len);
+
+            for (int start = start_min; start <= start_max; start++) {
+                int end = start + len - 1;
+                
+                // If this window is completely inside a single block, skip it 
+                // (it was already counted in step 1)
+                if (start / block_size == end / block_size) continue;
+
+                // Verify hash
+                if (compute_raw_hash(start, end) == target_hash) {
+                    total_count++;
+                }
+            }
+        }
+
+        return total_count;
+    }
+};
+
+int main() {
+    string text = "aaaaa"; // 5 a's
+    DynamicPatternCounter dpc;
+    dpc.init(text);
+
+    long long hash_aa = dpc.compute_raw_hash(0, 1); // Get hash of "aa"
+
+    // Originally, "aa" occurs 4 times in "aaaaa"
+    cout << "Occurrences of 'aa': " << dpc.count_occurrences(hash_aa, 2) << "\n";
+
+    // Change middle character: text becomes "aabaa"
+    dpc.update_char(2, 'b');
+
+    // Now, "aa" should only occur 2 times (at the beginning and at the end)
+    cout << "Occurrences of 'aa' after update: " << dpc.count_occurrences(hash_aa, 2) << "\n";
+
+    return 0;
+}
