@@ -1,0 +1,165 @@
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+
+using namespace std;
+
+struct OnlineBCC {
+    int n;
+    
+    // dsu_bcc maps each node to its unique biconnected component head
+    vector<int> dsu_bcc;
+    vector<int> dsu_cc;   // Connected component tracking
+    vector<int> par;      // Forest structure parents
+    vector<int> dsu_sz;   // Size for CC merging optimization
+    
+    // Tracks the actual nodes belonging to each biconnected component head
+    vector<vector<int>> comp_nodes;
+    vector<bool> is_cutpoint;
+
+    OnlineBCC(int n) : n(n), dsu_bcc(n), dsu_cc(n), par(n, -1), dsu_sz(n, 1), is_cutpoint(n, false) {
+        iota(dsu_bcc.begin(), dsu_bcc.end(), 0);
+        iota(dsu_cc.begin(), dsu_cc.end(), 0);
+        comp_nodes.resize(n);
+        for (int i = 0; i < n; ++i) {
+            comp_nodes[i].push_back(i);
+        }
+    }
+
+    // 1. Returns the unique representative "head" of node u's biconnected component
+    int get_head(int u) {
+        return dsu_bcc[u] == u ? u : dsu_bcc[u] = get_head(dsu_bcc[u]);
+    }
+
+    // 2. Returns all the nodes currently belonging to that head's biconnected component
+    const vector<int>& get_nodes_of_head(int head_u) {
+        return comp_nodes[head_u];
+    }
+
+    int find_cc(int u) {
+        return dsu_cc[u] == u ? u : dsu_cc[u] = find_cc(dsu_cc[u]);
+    }
+
+    // Makes u the root of its component tree in the 2-connected forest
+    void make_root(int u) {
+        u = get_head(u);
+        int curr = u;
+        int prev = -1;
+        while (curr != -1) {
+            int next_node = get_head(par[curr]);
+            par[curr] = prev;
+            prev = curr;
+            curr = next_node;
+        }
+    }
+
+    // --- Custom Actions (Placeholders to fill) ---
+    void mark_edge_as_bridge(int u, int v) {
+        // --- Custom logic when a bridge is created ---
+    }
+
+    void mark_edge_as_not_bridge(int u, int v) {
+        // --- Custom logic when an edge is no longer a bridge ---
+    }
+
+    void mark_node_as_art_point(int u, bool state) {
+        is_cutpoint[u] = state;
+        // --- Custom logic for articulation points ---
+    }
+
+    // Merges components along the cycle path up to their Lowest Common Ancestor (LCA)
+    void merge_path(int u, int v) {
+        vector<int> path_u, path_v;
+        int lca = -1;
+        
+        vector<bool> visited(n, false);
+        int curr_u = u, curr_v = v;
+        while (true) {
+            if (curr_u != -1) {
+                if (visited[curr_u]) { lca = curr_u; break; }
+                visited[curr_u] = true;
+                path_u.push_back(curr_u);
+                curr_u = par[curr_u] == -1 ? -1 : get_head(par[curr_u]);
+            }
+            if (curr_v != -1) {
+                if (visited[curr_v]) { lca = curr_v; break; }
+                visited[curr_v] = true;
+                path_v.push_back(curr_v);
+                curr_v = par[curr_v] == -1 ? -1 : get_head(par[curr_v]);
+            }
+        }
+
+        vector<int> to_merge;
+        for (int node : path_u) {
+            to_merge.push_back(node);
+            if (node == lca) break;
+        }
+        for (int node : path_v) {
+            if (node == lca) break;
+            to_merge.push_back(node);
+        }
+
+        // Merge all components on the cycle path into the LCA (representing the component head)
+        for (int node : to_merge) {
+            if (node == lca) continue;
+            
+            mark_edge_as_not_bridge(node, par[node]);
+            dsu_bcc[node] = lca; // Point node's head to LCA
+
+            // Merge node lists efficiently (small-to-large ensures amortized O(log N) total updates)
+            comp_nodes[lca].insert(
+                comp_nodes[lca].end(), 
+                comp_nodes[node].begin(), 
+                comp_nodes[node].end()
+            );
+            comp_nodes[node].clear(); // Free up memory
+        }
+    }
+
+    // Add a new undirected edge between u and v online
+    void add_edge(int u, int v) {
+        int cu = get_head(u);
+        int cv = get_head(v);
+        if (cu == cv) return; // Already in the same biconnected component
+
+        int cc_u = find_cc(u);
+        int cc_v = find_cc(v);
+
+        if (cc_u != cc_v) {
+            // Edges connecting separate components are bridges
+            mark_edge_as_bridge(u, v);
+            if (dsu_sz[cc_u] < dsu_sz[cc_v]) {
+                swap(u, v);
+                swap(cc_u, cc_v);
+            }
+            make_root(v);
+            par[get_head(v)] = u;
+            dsu_cc[cc_v] = cc_u;
+            dsu_sz[cc_u] += dsu_sz[cc_v];
+        } else {
+            // Forming a cycle: collapse path to merge the biconnected components
+            merge_path(cu, cv);
+        }
+        update_art_points();
+    }
+
+    void update_art_points() {
+        vector<int> deg(n, 0);
+        for (int i = 0; i < n; ++i) {
+            int root = get_head(i);
+            if (par[root] != -1) {
+                deg[root]++;
+                deg[get_head(par[root])]++;
+            }
+        }
+        for (int i = 0; i < n; ++i) {
+            int head = get_head(i);
+            if (deg[head] > 1) {
+                mark_node_as_art_point(i, true);
+            } else {
+                mark_node_as_art_point(i, false);
+            }
+        }
+    }
+};
