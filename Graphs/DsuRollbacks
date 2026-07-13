@@ -1,0 +1,85 @@
+struct DSU_Rollback {
+    int n;
+    int num_components;
+    vector<int> parent;
+    vector<int> sz; // Size of each component to maintain Union by Size
+
+    // Represents a change made during a union operation
+    struct Modification {
+        int u, v;       // The nodes whose parents/sizes were changed
+        int prev_sz_u;  // Previous size of u's root
+        int prev_p_v;   // Previous parent of v's root
+    };
+    
+    vector<Modification> history;
+
+    DSU_Rollback(int n) : n(n), num_components(n), parent(n + 1), sz(n + 1, 1) {
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    // Find without Path Compression (O(log N))
+    int find(int i) {
+        while (i != parent[i]) {
+            i = parent[i];
+        }
+        return i;
+    }
+
+    // Returns the current number of modifications stored (used as a checkpoint)
+    int get_time() {
+        return history.size();
+    }
+
+    // Merges components containing u and v (O(log N))
+    bool merge(int u, int v) {
+        int root_u = find(u);
+        int root_v = find(v);
+
+        if (root_u == root_v) {
+            return false; // Already in the same component
+        }
+
+        // Union by Size: keep root_u as the larger tree
+        if (sz[root_u] < sz[root_v]) {
+            swap(root_u, root_v);
+        }
+
+        // Record the current state of variables before modification
+        history.push_back({root_u, root_v, sz[root_u], parent[root_v]});
+
+        // Apply modifications
+        parent[root_v] = root_u;
+        sz[root_u] += sz[root_v];
+        num_components--;
+
+        return true;
+    }
+
+    // Rollback exactly one merge operation (O(1))
+    void rollback_one() {
+        if (history.empty()) return;
+        
+        Modification last = history.back();
+        history.pop_back();
+
+        // Restore the original state
+        parent[last.v] = last.prev_p_v;
+        sz[last.u] = last.prev_sz_u;
+        num_components++;
+    }
+
+    // Rollback to a specific historical checkpoint (O(number of undone merges))
+    void rollback_to(int time_checkpoint) {
+        while ((int)history.size() > time_checkpoint) {
+            rollback_one();
+        }
+    }
+
+    bool is_same(int u, int v) {
+        return find(u) == find(v);
+    }
+
+    int get_size(int u) {
+        return sz[find(u)];
+    }
+};
