@@ -1,0 +1,260 @@
+//this code is N*sq so avoid use it 
+
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <numeric>
+
+using namespace std;
+
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+struct IncrementalSCC {
+    int n;
+    vector<int> parent;     // DSU tracking the representatives of the SCCs
+    vector<int> topo;       // Topological index: node -> position
+    vector<int> pos;        // Inverse topological index: position -> node
+    
+    // Linked-list structures for O(1) merging of node sets in DSU
+    vector<int> next_node;  // next_node[i] points to the next node in the same SCC
+    vector<int> scc_tail;   // scc_tail[head] points to the tail of the SCC linked list
+
+    // Graph representation (operating strictly on SCC representative nodes)
+    vector<vector<int>> adj;    
+    vector<vector<int>> radj;   
+
+    // Helper arrays for fast bidirectional search 
+    vector<int> visited_fw;
+    vector<int> visited_bw;
+    int visit_token; 
+
+    IncrementalSCC(int n) : n(n), parent(n + 1), topo(n + 1), pos(n + 1), 
+                            next_node(n + 1, -1), scc_tail(n + 1),
+                            adj(n + 1), radj(n + 1), 
+                            visited_fw(n + 1, 0), visited_bw(n + 1, 0), visit_token(0) {
+        iota(parent.begin(), parent.end(), 0);
+        iota(topo.begin(), topo.end(), 0);
+        iota(pos.begin(), pos.end(), 0);
+        iota(scc_tail.begin(), scc_tail.end(), 0); // Initially, each node is its own tail
+    }
+
+    // 1. Get the representative head of the SCC containing node u
+    int head_of_node(int u) {
+        if (parent[u] == u)
+            return u;
+        return parent[u] = head_of_node(parent[u]);
+    }
+
+    // 2. Checks if u is the head of its SCC
+    bool is_head_of_scc(int u) {
+        return parent[u] == u;
+    }
+
+    // 3. Get all nodes belonging to a specific SCC head (Runs in O(Size of SCC))
+    vector<int> nodes_belong_to_head(int head) {
+        vector<int> members;
+        if (!is_head_of_scc(head)) return members; // Return empty if not a valid head
+
+        int curr = head;
+        while (curr != -1) {
+            members.push_back(curr);
+            curr = next_node[curr];
+        }
+        return members;
+    }
+
+    // Merges component v into component u (u becomes the head of both)
+    void merge(int u, int v) {
+        int root_u = head_of_node(u);
+        int root_v = head_of_node(v);
+        if (root_u != root_v) {
+            parent[root_v] = root_u; // root_u remains the designated head
+            
+            // O(1) Link the two lists of nodes together:
+            // Point the tail of list u to the head of list v
+            next_node[scc_tail[root_u]] = root_v;
+            // Update the tail of list u to be the tail of list v
+            scc_tail[root_u] = scc_tail[root_v];
+        }
+    }
+
+    // Adds a directed edge u -> v
+    void add_edge(int u, int v) {
+        u = head_of_node(u);
+        v = head_of_node(v);
+
+        if (u == v) return; // Already in the same SCC
+
+        // Edge preserves existing topological order
+        if (topo[u] < topo[v]) {
+            adj[u].push_back(v);
+            radj[v].push_back(u);
+            return;
+        }
+
+        // Run bidirectional search inside [topo[v], topo[u]]
+        visit_token++;
+        
+        queue<int> q_fw;
+        queue<int> q_bw;
+        
+        q_fw.push(v);
+        visited_fw[v] = visit_token;
+        
+        q_bw.push(u);
+        visited_bw[u] = visit_token;
+
+        bool cycle_detected = false;
+        vector<int> affected_fw, affected_bw;
+
+        while (!q_fw.empty() && !q_bw.empty()) {
+            // Forward step
+            int curr_fw = q_fw.front();
+            q_fw.pop();
+            affected_fw.push_back(curr_fw);
+
+            if (curr_fw == u || visited_bw[curr_fw] == visit_token) {
+                cycle_detected = true;
+                break;
+            }
+
+            for (int next : adj[curr_fw]) {
+                next = head_of_node(next);
+                if (topo[next] < topo[u] && visited_fw[next] != visit_token) {
+                    visited_fw[next] = visit_token;
+                    q_fw.push(next);
+                }
+            }
+
+            // Backward step
+            int curr_bw = q_bw.front();
+            q_bw.pop();
+            affected_bw.push_back(curr_bw);
+
+            if (curr_bw == v || visited_fw[curr_bw] == visit_token) {
+                cycle_detected = true;
+                break;
+            }
+
+            for (int prev : radj[curr_bw]) {
+                prev = head_of_node(prev);
+                if (topo[prev] > topo[v] && visited_bw[prev] != visit_token) {
+                    visited_bw[prev] = visit_token;
+                    q_bw.push(prev);
+                }
+            }
+        }
+
+        if (cycle_detected) {
+            // Merge all components in our cycle path
+            int rep = u; // Pick 'u' as our master head
+            
+            vector<int> cycle_nodes;
+            for (int x : affected_fw) cycle_nodes.push_back(x);
+            for (int x : affected_bw) cycle_nodes.push_back(x);
+            
+            while(!q_fw.empty()) { cycle_nodes.push_back(q_fw.front()); q_fw.pop(); }
+            while(!q_bw.empty()) { cycle_nodes.push_back(q_bw.front()); q_bw.pop(); }
+
+            for (int node : cycle_nodes) {
+                merge(rep, node);
+            }
+
+            // Reconstruct the unified adjacency lists for the new head
+            int new_rep = head_of_node(rep);
+            vector<int> new_adj, new_radj;
+            
+            for (int node : cycle_nodes) {
+                for (int target : adj[node]) {
+                    int t_rep = head_of_node(target);
+                    if (t_rep != new_rep) new_adj.push_back(t_rep);
+                }
+                for (int source : radj[node]) {
+                    int s_rep = head_of_node(source);
+                    if (s_rep != new_rep) new_radj.push_back(s_rep);
+                }
+            }
+            
+            // Fast deduplication of edges
+            sort(new_adj.begin(), new_adj.end());
+            new_adj.erase(unique(new_adj.begin(), new_adj.end()), new_adj.end());
+            sort(new_radj.begin(), new_radj.end());
+            new_radj.erase(unique(new_radj.begin(), new_radj.end()), new_radj.end());
+
+            adj[new_rep] = move(new_adj);
+            radj[new_rep] = move(new_radj);
+
+        } else {
+            // Cycle-free insertion: Shift topological values to resolve the conflict
+            adj[u].push_back(v);
+            radj[v].push_back(u);
+
+            vector<int> all_affected;
+            for (int x : affected_fw) all_affected.push_back(x);
+            for (int x : affected_bw) all_affected.push_back(x);
+
+            sort(all_affected.begin(), all_affected.end(), [&](int a, int b) {
+                return topo[a] < topo[b];
+            });
+
+            vector<int> saved_topo;
+            for (int x : all_affected) {
+                saved_topo.push_back(topo[x]);
+            }
+
+            int write_idx = 0;
+            for (int x : affected_bw) {
+                int node = x;
+                topo[node] = saved_topo[write_idx];
+                pos[saved_topo[write_idx]] = node;
+                write_idx++;
+            }
+            for (int x : affected_fw) {
+                int node = x;
+                topo[node] = saved_topo[write_idx];
+                pos[saved_topo[write_idx]] = node;
+                write_idx++;
+            }
+        }
+    }
+
+    bool is_same_scc(int u, int v) {
+        return head_of_node(u) == head_of_node(v);
+    }
+};
+
+int main() {
+    fast_io();
+
+    int N = 5;
+    IncrementalSCC scc(N);
+
+    // Initial state
+    cout << "Initial check: Head of node 3 is " << scc.head_of_node(3) << "\n";
+
+    scc.add_edge(1, 2);
+    scc.add_edge(2, 3);
+    scc.add_edge(3, 1); // 1->2->3->1 (Cycle detected!)
+
+    // Query 1: Find the head of a node in the SCC
+    int current_head = scc.head_of_node(2);
+    cout << "After cycle, head of node 2 is: " << current_head << "\n";
+
+    // Query 2: Check if a node is the head of its SCC
+    cout << "Is " << current_head << " the head of its SCC? " << scc.is_head_of_scc(current_head) << "\n";
+    cout << "Is node 2 the head of its SCC? " << scc.is_head_of_scc(2) << "\n";
+
+    // Query 3: Retrieve all nodes belonging to the head
+    vector<int> members = scc.nodes_belong_to_head(current_head);
+    cout << "Nodes that belong to head " << current_head << ": ";
+    for (int node : members) {
+        cout << node << " ";
+    }
+    cout << "\n";
+
+    return 0;
+}
