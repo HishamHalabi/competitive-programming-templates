@@ -1,4 +1,16 @@
-
+struct item {
+    long long data[22];
+    int sz = 0;
+ 
+    void clear() { sz = 0; }
+    void push_back(long long v) { data[sz++] = v; }
+    void pop_back() { if (sz > 0) sz--; }
+    long long back() const { return sz > 0 ? data[sz - 1] : 0; }
+    int size() const { return sz; }
+    bool empty() const { return sz == 0; }
+    long long& operator[](int i) { return data[i]; }
+    const long long& operator[](int i) const { return data[i]; }
+};
 struct chash {
     static uint64_t splitmix64(uint64_t x){
         x += 0x9e3779b97f4a7c15;
