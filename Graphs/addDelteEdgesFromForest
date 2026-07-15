@@ -1,9 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-
-
-
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 
@@ -13,16 +10,11 @@ using namespace __gnu_pbds;
 template<typename T>
 using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
 
-
-// #define F first
-// #define S second
 #define int long long 
 #define all(a) a.begin() , a.end()
 #define ld long double
 
-#define int long long
-
-struct  item  {
+struct item  {
     bool operator<(const item& other) const {
         return 2 < 3;
     }
@@ -33,21 +25,17 @@ ll random_int(ll l , ll r){
     static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
     return uniform_int_distribution<ll>(l,r)(rng);
 }
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <climits>
 
 // =========================================================================
 // 1. EDIT ONLY THIS STRUCT TO CHANGE QUERY TYPE
 // =========================================================================
 struct Data {
-    int val = 0;        // The individual value of this node
+    int val = 0;        // The individual value of this node (e.g. weight of a single vertex)
     int aggregate = 0;  // The aggregated result for the Splay tree path segment
 
     // Define the default empty state (identity element)
     static Data identity() {
-        return { 0, 0 }; // e.g., 0 for Sum, INT_MIN for Max, INT_MAX for Min
+        return { 0, 0 }; // e.g., 0 for Sum, LLONG_MIN for Max, LLONG_MAX for Min
     }
 
     // Define how to combine the left child path, current node, and right child path
@@ -62,7 +50,7 @@ struct Data {
         // Example: Path Max Query (Uncomment to use)
         // res.aggregate = std::max({left.aggregate, mid.val, right.aggregate});
 
-        // Example: Path Min Query (Uncomment to use, make sure identity() returns INT_MAX)
+        // Example: Path Min Query (Uncomment to use, make sure identity() returns LLONG_MAX)
         // res.aggregate = std::min({left.aggregate, mid.val, right.aggregate});
         
         return res;
@@ -82,6 +70,7 @@ private:
     std::vector<Node> t;
 
     bool is_root(int x) {
+        if (!x) return true; // Safety Guard: node 0 is always considered a root
         return t[t[x].p].ch[0] != x && t[t[x].p].ch[1] != x;
     }
 
@@ -123,6 +112,7 @@ private:
     }
 
     void splay(int x) {
+        if (!x) return; // Safety Guard
         push_all(x);
         while (!is_root(x)) {
             int y = t[x].p, z = t[y].p;
@@ -149,7 +139,7 @@ private:
 
 public:
     LinkCutTree(int n) {
-        t.resize(n + 1);
+        t.assign(n + 1, Node());
         for (int i = 0; i <= n; ++i) {
             t[i].data = Data::identity();
         }
@@ -188,6 +178,7 @@ public:
     }
 
     bool cut(int u, int v) {
+        if (!u || !v) return false; // Safety Guard
         make_root(u);
         access(v);
         splay(v);
@@ -211,75 +202,74 @@ public:
 
 void testCase()   {
      int  n   ; 
-     cin >> n ;
+     if (!(cin >> n)) return;
 
      vector < int > a(n+5) ;
 
-     for  (int  i = 1; i<=n;  ++i)cin >>a[i]; 
+     // Map actual values to continuous tree node indices
+     int id = 1; 
+     map < int , int > ids; 
+     for  (int  i = 1; i<=n;  ++i) {
+         cin >> a[i]; 
+         if (!ids.count(a[i])) { 
+             ids[a[i]] = ++id;
+         }
+     }
 
-
+     LinkCutTree lct1(id + 5) ; 
  
      int r = 1 ; 
      vector < int > mx(n+1) ; 
-     for  (int  i = 1; i <=n ;  i+=2)  {
-               
-                while(r+1<=n  and !is_con(a[r] , a[r+1])){
-                         cout<<r<<" "<<r+1<<endl;
-                         con(a[r] , a[r+1]) ; 
-                         r+=2 ;
-                }
-                mx[i] =  r-1; 
-                cout<< i <<" "<<r<<"\n" ; 
-                del_edge(a[i] , a[i+1]) ; 
+     
+     // 1. Odd Phase
+     for  (int  i = 1; i <= n ;  i += 2)  {
+         while (r + 1 <= n && !lct1.connected(ids[a[r]], ids[a[r+1]])) {
+             lct1.link(ids[a[r]], ids[a[r+1]]); 
+             r += 2;
+         }
+         mx[i] = r - 1; 
+         if (i + 1 <= n) {
+             lct1.cut(ids[a[i]], ids[a[i+1]]); 
+         }
      }
-     return ; 
-
   
-     r =2;
-     for  (int  i = 2; i <=n ;  i+=2)  {
-                while(r+1<=n  and !is_con(a[r] , a[r+1])){
-                         con(a[r] , a[r+1]) ; 
-                         r+=2 ;
-                }
-                mx[i] =  r-1; 
-                del_edge(a[i] , a[i+1]) ; 
+     // 2. Even Phase (Resetting with a clean LCT instance to avoid edge contamination)
+     LinkCutTree lct2(id + 5);
+     r = 2;
+     for  (int  i = 2; i <= n ;  i += 2)  {
+         while (r + 1 <= n && !lct2.connected(ids[a[r]], ids[a[r+1]])) {
+             lct2.link(ids[a[r]], ids[a[r+1]]); 
+             r += 2;
+         }
+         mx[i] = r - 1; 
+         if (i + 1 <= n) {
+             lct2.cut(ids[a[i]], ids[a[i+1]]); 
+         }
      }
 
-
-     int ans= 0 ; 
-     vector < int>dp(n+2) ; 
-     for  (int i  = n ; i>=1;  --i)  {
-             
-              if (a[i] == 0) {
-                   dp[i] = 1 + dp[i+1] ; 
-                   continue ; 
-              }
-              if (mx[i]  >=  i  + 2*a[i]) {
-                    dp[i]   = 1  +  dp[i  +  2*a[i]] ; 
-              }
-              ans+=dp[i] ; 
+     int ans = 0 ; 
+     vector < int > dp(n+2, 0) ; 
+     for  (int i = n ; i >= 1;  --i)  {
+          if (a[i] == 0) {
+               dp[i] = 1 + dp[i+1] ; 
+               continue ; 
+          }
+          if (mx[i] >= i + 2*a[i]) {
+               dp[i] = 1 + dp[i + 2*a[i]] ; 
+          }
+          ans += dp[i] ; 
      }
-     cout<<ans<<"\n" ; 
-
+     cout << ans << "\n" ; 
 }
 
-
-
-
-
-
-
 int32_t main() {
-    
-    
-    
     ios_base::sync_with_stdio(0) ;
     cin.tie(0 ) ;
  
-   
-     long long tc  =1;
-    //  cin >> tc ;
-     while(tc-- )   {
-          testCase() ;
-     }
+    long long tc = 1;
+    // cin >> tc ;
+    while (tc-- )   {
+         testCase() ;
+    }
+    return 0;
 }
