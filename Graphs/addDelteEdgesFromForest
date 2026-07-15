@@ -1,0 +1,285 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+
+
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace __gnu_pbds;
+
+// Template definition for ordered_set
+template<typename T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+
+// #define F first
+// #define S second
+#define int long long 
+#define all(a) a.begin() , a.end()
+#define ld long double
+
+#define int long long
+
+struct  item  {
+    bool operator<(const item& other) const {
+        return 2 < 3;
+    }
+};
+
+#define ll int
+ll random_int(ll l , ll r){
+    static mt19937_64 rng(chrono::system_clock::now().time_since_epoch().count());
+    return uniform_int_distribution<ll>(l,r)(rng);
+}
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+// =========================================================================
+// 1. EDIT ONLY THIS STRUCT TO CHANGE QUERY TYPE
+// =========================================================================
+struct Data {
+    int val = 0;        // The individual value of this node
+    int aggregate = 0;  // The aggregated result for the Splay tree path segment
+
+    // Define the default empty state (identity element)
+    static Data identity() {
+        return { 0, 0 }; // e.g., 0 for Sum, INT_MIN for Max, INT_MAX for Min
+    }
+
+    // Define how to combine the left child path, current node, and right child path
+    // THIS IS YOUR MERGE FUNCTION
+    static Data merge(const Data& left, const Data& mid, const Data& right) {
+        Data res;
+        res.val = mid.val;
+        
+        // Example: Path Sum Query
+        res.aggregate = left.aggregate + mid.val + right.aggregate;
+
+        // Example: Path Max Query (Uncomment to use)
+        // res.aggregate = std::max({left.aggregate, mid.val, right.aggregate});
+
+        // Example: Path Min Query (Uncomment to use, make sure identity() returns INT_MAX)
+        // res.aggregate = std::min({left.aggregate, mid.val, right.aggregate});
+        
+        return res;
+    }
+};
+// =========================================================================
+
+class LinkCutTree {
+private:
+    struct Node {
+        int ch[2] = {0, 0};
+        int p = 0;
+        bool rev = false;
+        Data data;
+    };
+
+    std::vector<Node> t;
+
+    bool is_root(int x) {
+        return t[t[x].p].ch[0] != x && t[t[x].p].ch[1] != x;
+    }
+
+    void push_up(int x) {
+        if (!x) return;
+        // Merge Left Child + Self + Right Child
+        t[x].data = Data::merge(
+            t[x].ch[0] ? t[t[x].ch[0]].data : Data::identity(),
+            t[x].data,
+            t[x].ch[1] ? t[t[x].ch[1]].data : Data::identity()
+        );
+    }
+
+    void push_down(int x) {
+        if (t[x].rev) {
+            std::swap(t[x].ch[0], t[x].ch[1]);
+            if (t[x].ch[0]) t[t[x].ch[0]].rev ^= 1;
+            if (t[x].ch[1]) t[t[x].ch[1]].rev ^= 1;
+            t[x].rev = false;
+        }
+    }
+
+    void rotate(int x) {
+        int y = t[x].p, z = t[y].p;
+        int k = (t[y].ch[1] == x);
+        if (!is_root(y)) t[z].ch[t[z].ch[1] == y] = x;
+        t[x].p = z;
+        t[y].ch[k] = t[x].ch[k ^ 1];
+        if (t[x].ch[k ^ 1]) t[t[x].ch[k ^ 1]].p = y;
+        t[x].ch[k ^ 1] = y;
+        t[y].p = x;
+        push_up(y);
+        push_up(x);
+    }
+
+    void push_all(int x) {
+        if (!is_root(x)) push_all(t[x].p);
+        push_down(x);
+    }
+
+    void splay(int x) {
+        push_all(x);
+        while (!is_root(x)) {
+            int y = t[x].p, z = t[y].p;
+            if (!is_root(y)) {
+                ((t[y].ch[1] == x) ^ (t[z].ch[1] == y)) ? rotate(x) : rotate(y);
+            }
+            rotate(x);
+        }
+    }
+
+    void access(int x) {
+        for (int y = 0; x; y = x, x = t[x].p) {
+            splay(x);
+            t[x].ch[1] = y;
+            push_up(x);
+        }
+    }
+
+    void make_root(int x) {
+        access(x);
+        splay(x);
+        t[x].rev ^= 1;
+    }
+
+public:
+    LinkCutTree(int n) {
+        t.resize(n + 1);
+        for (int i = 0; i <= n; ++i) {
+            t[i].data = Data::identity();
+        }
+    }
+
+    // Set value of node x
+    void set_value(int x, int val) {
+        splay(x);
+        t[x].data.val = val;
+        push_up(x);
+    }
+
+    int find_root(int x) {
+        access(x);
+        splay(x);
+        while (t[x].ch[0]) {
+            push_down(x);
+            x = t[x].ch[0];
+        }
+        splay(x);
+        return x;
+    }
+
+    bool connected(int u, int v) {
+        if (u == v) return true;
+        return find_root(u) == find_root(v);
+    }
+
+    bool link(int u, int v) {
+        make_root(u);
+        if (find_root(v) != u) {
+            t[u].p = v;
+            return true;
+        }
+        return false;
+    }
+
+    bool cut(int u, int v) {
+        make_root(u);
+        access(v);
+        splay(v);
+        if (t[v].ch[0] == u && !t[u].ch[1]) {
+            t[v].ch[0] = t[u].p = 0;
+            push_up(v);
+            return true;
+        }
+        return false;
+    }
+
+    // Returns the aggregate result of the path u to v
+    int query_path(int u, int v) {
+        make_root(u);
+        access(v);
+        splay(v);
+        return t[v].data.aggregate;
+    }
+};
+
+
+void testCase()   {
+     int  n   ; 
+     cin >> n ;
+
+     vector < int > a(n+5) ;
+
+     for  (int  i = 1; i<=n;  ++i)cin >>a[i]; 
+
+
+ 
+     int r = 1 ; 
+     vector < int > mx(n+1) ; 
+     for  (int  i = 1; i <=n ;  i+=2)  {
+               
+                while(r+1<=n  and !is_con(a[r] , a[r+1])){
+                         cout<<r<<" "<<r+1<<endl;
+                         con(a[r] , a[r+1]) ; 
+                         r+=2 ;
+                }
+                mx[i] =  r-1; 
+                cout<< i <<" "<<r<<"\n" ; 
+                del_edge(a[i] , a[i+1]) ; 
+     }
+     return ; 
+
+  
+     r =2;
+     for  (int  i = 2; i <=n ;  i+=2)  {
+                while(r+1<=n  and !is_con(a[r] , a[r+1])){
+                         con(a[r] , a[r+1]) ; 
+                         r+=2 ;
+                }
+                mx[i] =  r-1; 
+                del_edge(a[i] , a[i+1]) ; 
+     }
+
+
+     int ans= 0 ; 
+     vector < int>dp(n+2) ; 
+     for  (int i  = n ; i>=1;  --i)  {
+             
+              if (a[i] == 0) {
+                   dp[i] = 1 + dp[i+1] ; 
+                   continue ; 
+              }
+              if (mx[i]  >=  i  + 2*a[i]) {
+                    dp[i]   = 1  +  dp[i  +  2*a[i]] ; 
+              }
+              ans+=dp[i] ; 
+     }
+     cout<<ans<<"\n" ; 
+
+}
+
+
+
+
+
+
+
+int32_t main() {
+    
+    
+    
+    ios_base::sync_with_stdio(0) ;
+    cin.tie(0 ) ;
+ 
+   
+     long long tc  =1;
+    //  cin >> tc ;
+     while(tc-- )   {
+          testCase() ;
+     }
+}
