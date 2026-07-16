@@ -160,3 +160,20 @@ void init(){
                  calc[i] = -1  ;
         }
 }
+////////////////////////////////
+// Finds a solution to: x = a1 (mod m1), x = a2 (mod m2)
+// Returns {x, lcm(m1, m2)}. If no solution, returns {-1, -1}
+pair<long long, long long> solve_crt_two(long long a1, long long m1, long long a2, long long m2) {
+    long long s, t;
+    long long g = extgcd_crt(m1, m2, s, t);
+    if ((a1 - a2) % g != 0) return {-1, -1}; // No solution
+    
+    long long lcm = (m1 / g) * m2;
+    // Minimize (s * (a2 - a1) / g) mod (m2 / g) to avoid overflow
+    long long x = (s * ((a2 - a1) / g)) % (m2 / g);
+    if (x < 0) x += m2 / g;
+    
+    long long ans = (a1 + x * m1) % lcm;
+    if (ans < 0) ans += lcm;
+    return {ans, lcm};
+}
