@@ -1,5 +1,14 @@
 
 
+ cnt 1 bits at b from  0 to  n
+ int freq(int b , int n)  {n++ ;
+      int cnt  = (n   / (int)pow(2,b+1)) *(int)pow(2,b)   ;
+      int md =  n   % (int) pow(2,b+1) ; 
+      int zeros =  min(md , (int)  pow(2,  b)) ; 
+      return cnt   + md  -zeros;  
+ }
+ 
+
 //taken from chat 8:04   6/30/25
 long long rangeOR(long long L, long long R) {
     long long res = 0;
