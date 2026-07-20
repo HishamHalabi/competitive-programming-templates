@@ -1,3 +1,5 @@
+//the first 2 is integers  , the last is ld 
+
 /*
    Basic Idea of CHT  (Convex hull trick)
          considering lines  , delting uncessary segments
@@ -11,8 +13,17 @@ template<bool IS_MAX = true>
 struct CHT {
     struct Line {
         mutable long long k, m, p;
+        int id; // Added ID to uniquely track lines if needed
+
         bool operator<(const Line& o) const { return IS_MAX ? k < o.k : k > o.k; }
         bool operator<(long long x) const { return p < x; }
+
+        // Custom tie-breaker logic: return true if 'this' is preferred over 'o'
+        bool prefer_over(const Line& o) const {
+            // Fill your own operator/comparison here
+            // Example: return id < o.id; 
+            return false;
+        }
     };
     
     struct Container : multiset<Line, less<>> {
@@ -26,29 +37,71 @@ struct CHT {
             return x->p >= y->p;
         }
         
-        void add(long long k, long long m) {
-            auto z = insert({k, m, 0}), y = z++, x = y;
+        void add(long long k, long long m, int id) {
+            auto z = insert({k, m, 0, id}), y = z++, x = y;
             while (isect(y, z)) z = erase(z);
             if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
             while ((y = x) != begin() && (--x)->p >= y->p) isect(x, erase(y));
         }
         
-        long long query(long long x) {
-            auto l = *lower_bound(x);
-            return l.k * x + l.m;
+        pair<long long, Line> query(long long x) {
+            auto it = lower_bound(x);
+            auto best = it;
+            long long best_val = it->k * x + it->m;
+            
+            // At exact intersection boundaries, two adjacent lines can have identical values
+            if (it != begin()) {
+                auto prv = prev(it);
+                long long prv_val = prv->k * x + prv->m;
+                if (prv_val == best_val) {
+                    if (prv->prefer_over(*best)) {
+                        best = prv;
+                    }
+                }
+            }
+            return {best_val, *best};
         }
     } container;
 
-    void add(long long k, long long m) { container.add(k, m); }
-    long long query(long long x) { return container.query(x); }
+    void add(long long k, long long m, int id = -1) { container.add(k, m, id); }
+    pair<long long, Line> query(long long x) { return container.query(x); }
 };
+/////how to use 
+int main() {
+    // 1. Min CHT Example
+    CHT<false> min_cht; 
+    min_cht.add(2, 3); // y = 2x + 3
+    min_cht.add(-1, 10); // y = -x + 10
+    // query(5) -> min(13, 5) = 5
+    
+    // 2. Max LiChao Tree with deletion Example
+    LiChao<true> max_lc;
+    int l1 = max_lc.add(2, 5);  // y = 2x + 5
+    int l2 = max_lc.add(-1, 20); // y = -x + 20
+    
+    cout << max_lc.query(4) << "\n"; // Output: 16 (from l2)
+    max_lc.del(l2);
+    cout << max_lc.query(4) << "\n"; // Output: 13 (reverts back to l1 safely)
+}
 
-//LI Chao tree  add  ,delete online 
-#include <iostream>
-#include <vector>
-#include <algorithm>
 
-using namespace std;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Set IS_MAX = true for maximum queries, false for minimum queries
 template<bool IS_MAX = true, long long MIN_X = -1000000000, long long MAX_X = 1000000000>
@@ -57,6 +110,13 @@ struct LiChao {
     struct Line {
         long long k, m; int id;
         long long eval(long long x) const { return k * x + m; }
+
+        // Custom tie-breaker logic: return true if 'this' is preferred over 'o'
+        bool prefer_over(const Line& o) const {
+            // Fill your own operator/comparison here
+            // Example: return id < o.id;
+            return false;
+        }
     };
 
     struct Node {
@@ -90,13 +150,32 @@ struct LiChao {
         }
     }
 
-    long long query(int idx, long long l, long long r, long long x) {
-        if (idx == -1) return IS_MAX ? -INF : INF;
-        long long cur = (tree[idx].line.id != -1 && !deleted[tree[idx].line.id]) ? tree[idx].line.eval(x) : (IS_MAX ? -INF : INF);
+    // Helper to evaluate and cleanly resolve line comparison priorities
+    pair<long long, Line> merge_res(pair<long long, Line> a, pair<long long, Line> b) {
+        if (a.second.id == -1) return b;
+        if (b.second.id == -1) return a;
+        if (a.first != b.first) {
+            if (IS_MAX) return a.first > b.first ? a : b;
+            else return a.first < b.first ? a : b;
+        }
+        return a.second.prefer_over(b.second) ? a : b;
+    }
+
+    pair<long long, Line> query(int idx, long long l, long long r, long long x) {
+        if (idx == -1) return {IS_MAX ? -INF : INF, {0, 0, -1}};
+        
+        pair<long long, Line> cur = {IS_MAX ? -INF : INF, {0, 0, -1}};
+        if (tree[idx].line.id != -1 && !deleted[tree[idx].line.id]) {
+            cur = {tree[idx].line.eval(x), tree[idx].line};
+        }
+        
         if (l == r) return cur;
         long long mid = l + (r - l) / 2;
-        if (x <= mid) return IS_MAX ? max(cur, query(tree[idx].l, l, mid, x)) : min(cur, query(tree[idx].l, l, mid, x));
-        else return IS_MAX ? max(cur, query(tree[idx].r, mid + 1, r, x)) : min(cur, query(tree[idx].r, mid + 1, r, x));
+        pair<long long, Line> sub;
+        if (x <= mid) sub = query(tree[idx].l, l, mid, x);
+        else sub = query(tree[idx].r, mid + 1, r, x);
+        
+        return merge_res(cur, sub);
     }
 
     // Public API
@@ -106,24 +185,172 @@ struct LiChao {
         return id;
     }
     void del(int id) { if (id >= 0 && id < deleted.size()) deleted[id] = true; }
-    long long query(long long x) { return query(0, MIN_X, MAX_X, x); }
+    pair<long long, Line> query(long long x) { return query(0, MIN_X, MAX_X, x); }
 };
 
-
-/////how to use 
 int main() {
-    // 1. Min CHT Example
+    // Example: Min CHT
     CHT<false> min_cht; 
-    min_cht.add(2, 3); // y = 2x + 3
-    min_cht.add(-1, 10); // y = -x + 10
-    // query(5) -> min(13, 5) = 5
+    min_cht.add(2, 3, 101);   // y = 2x + 3,  id = 101
+    min_cht.add(-1, 10, 102); // y = -x + 10, id = 102
     
-    // 2. Max LiChao Tree with deletion Example
+    auto [val1, line1] = min_cht.query(5);
+    cout << "CHT Val: " << val1 << ", Line ID: " << line1.id << "\n"; 
+
+    // Example: Max LiChao
     LiChao<true> max_lc;
-    int l1 = max_lc.add(2, 5);  // y = 2x + 5
-    int l2 = max_lc.add(-1, 20); // y = -x + 20
+    max_lc.add(2, 5);  
+    max_lc.add(-1, 20); 
     
-    cout << max_lc.query(4) << "\n"; // Output: 16 (from l2)
-    max_lc.del(l2);
-    cout << max_lc.query(4) << "\n"; // Output: 13 (reverts back to l1 safely)
+    auto [val2, line2] = max_lc.query(4);
+    cout << "LiChao Val: " << val2 << ", Line ID: " << line2.id << "\n";
 }
+
+--------------------------------------------------------------
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <set>
+#include <cmath> // Required for INFINITY
+
+using namespace std;
+
+template<bool IS_MAX = true>
+struct CHT {
+    struct Line {
+        mutable long double k, m, p;
+        int id;
+
+        bool operator<(const Line& o) const { return IS_MAX ? k < o.k : k > o.k; }
+        bool operator<(long double x) const { return p < x; }
+
+        bool prefer_over(const Line& o) const {
+            return false; // Implement custom tie-breaker if values match
+        }
+    };
+    
+    struct Container : multiset<Line, less<>> {
+        // Use floating-point infinity
+        static constexpr long double inf = INFINITY;
+        
+        bool isect(iterator x, iterator y) {
+            if (y == end()) { x->p = inf; return false; }
+            if (x->k == y->k) x->p = (IS_MAX ? x->m > y->m : x->m < y->m) ? inf : -inf;
+            else x->p = (y->m - x->m) / (x->k - y->k); // Direct floating-point division
+            return x->p >= y->p;
+        }
+        
+        void add(long double k, long double m, int id) {
+            auto z = insert({k, m, 0, id}), y = z++, x = y;
+            while (isect(y, z)) z = erase(z);
+            if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
+            while ((y = x) != begin() && (--x)->p >= y->p) isect(x, erase(y));
+        }
+        
+        pair<long double, Line> query(long double x) {
+            auto it = lower_bound(x);
+            auto best = it;
+            long double best_val = it->k * x + it->m;
+            
+            if (it != begin()) {
+                auto prv = prev(it);
+                long double prv_val = prv->k * x + prv->m;
+                
+                // Using a small epsilon value to check equality due to floating-point precision issues
+                if (abs(prv_val - best_val) < 1e-11) {
+                    if (prv->prefer_over(*best)) {
+                        best = prv;
+                    }
+                }
+            }
+            return {best_val, *best};
+        }
+    } container;
+
+    void add(long double k, long double m, int id = -1) { container.add(k, m, id); }
+    pair<long double, Line> query(long double x) { return container.query(x); }
+};
+
+--------------------------------------------------------------------------
+// Set default X bounds to match your coordinate constraints
+template<bool IS_MAX = true, long double MIN_X = -1e9, long double MAX_X = 1e9>
+struct LiChao {
+    static constexpr long double INF = INFINITY;
+    
+    struct Line {
+        long double k, m; int id;
+        long double eval(long double x) const { return k * x + m; }
+
+        bool prefer_over(const Line& o) const {
+            return false; // Implement custom tie-breaker if values match
+        }
+    };
+
+    struct Node {
+        Line line = {0, IS_MAX ? -INF : INF, -1};
+        int l = -1, r = -1;
+    };
+
+    vector<Node> tree;
+    vector<bool> deleted;
+
+    LiChao() { tree.push_back(Node()); }
+
+    bool better(Line a, Line b, long double x) {
+        if (b.id != -1 && deleted[b.id]) return true;
+        if (a.id != -1 && deleted[a.id]) return false;
+        return IS_MAX ? a.eval(x) > b.eval(x) : a.eval(x) < b.eval(x);
+    }
+
+    void add_line(int idx, long double l, long double r, Line nw) {
+        long double mid = l + (r - l) / 2.0;
+        bool b_mid = better(nw, tree[idx].line, mid);
+        bool b_l = better(nw, tree[idx].line, l);
+        if (b_mid) swap(tree[idx].line, nw);
+        if (l == r || nw.id == -1 || (nw.id != -1 && deleted[nw.id])) return;
+        if (b_l != b_mid) {
+            if (tree[idx].l == -1) { tree[idx].l = tree.size(); tree.push_back(Node()); }
+            add_line(tree[idx].l, l, mid, nw);
+        } else {
+            if (tree[idx].r == -1) { tree[idx].r = tree.size(); tree.push_back(Node()); }
+            add_line(tree[idx].r, mid + 1, r, nw);
+        }
+    }
+
+    pair<long double, Line> merge_res(pair<long double, Line> a, pair<long double, Line> b) {
+        if (a.second.id == -1) return b;
+        if (b.second.id == -1) return a;
+        
+        // Using epsilon evaluation for double comparisons
+        if (abs(a.first - b.first) > 1e-11) {
+            if (IS_MAX) return a.first > b.first ? a : b;
+            else return a.first < b.first ? a : b;
+        }
+        return a.second.prefer_over(b.second) ? a : b;
+    }
+
+    pair<long double, Line> query(int idx, long double l, long double r, long double x) {
+        if (idx == -1) return {IS_MAX ? -INF : INF, {0, 0, -1}};
+        
+        pair<long double, Line> cur = {IS_MAX ? -INF : INF, {0, 0, -1}};
+        if (tree[idx].line.id != -1 && !deleted[tree[idx].line.id]) {
+            cur = {tree[idx].line.eval(x), tree[idx].line};
+        }
+        
+        if (l == r) return cur;
+        long double mid = l + (r - l) / 2.0;
+        pair<long double, Line> sub;
+        if (x <= mid) sub = query(tree[idx].l, l, mid, x);
+        else sub = query(tree[idx].r, mid + 1, r, x);
+        
+        return merge_res(cur, sub);
+    }
+
+    int add(long double k, long double m) {
+        int id = deleted.size(); deleted.push_back(false);
+        add_line(0, MIN_X, MAX_X, {k, m, id});
+        return id;
+    }
+    void del(int id) { if (id >= 0 && id < deleted.size()) deleted[id] = true; }
+    pair<long double, Line> query(long double x) { return query(0, MIN_X, MAX_X, x); }
+};
