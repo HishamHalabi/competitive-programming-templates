@@ -1,3 +1,7 @@
+
+/*
+     n  * side  * side     / (4 * tan (180 / n))
+*/
 #include <bits/stdc++.h>
 using namespace std;
 
