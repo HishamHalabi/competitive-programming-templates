@@ -33,7 +33,7 @@ struct Trie {
             if (!nodes[idx][bit] {
                 
                   int nd = newNode();
-                   nodes[idx][c] = nd;
+                   nodes[idx][bit] = nd;
                 
             }
             idx = nodes[idx][bit]  ;
