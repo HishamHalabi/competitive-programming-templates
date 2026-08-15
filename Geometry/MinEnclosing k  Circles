@@ -1,0 +1,444 @@
+/*
+   First code for more than 2 (controll compexity and accurzye by start count or iterations)
+     second for 2 with n<=300 and fast
+*/
+#include <bits/stdc++.h>
+using namespace std;
+using ld = long double;
+
+struct Point {
+    ld x, y;
+};
+
+
+const ld M_PI =3.14159265358979323846;
+
+struct Circle {
+    ld x, y, r, r_sq;
+};
+
+inline bool outside(const Point& p, const Circle& c) {
+    ld dx = p.x - c.x;
+    ld dy = p.y - c.y;
+    return dx * dx + dy * dy > c.r_sq + 1e-9;
+}
+
+Circle make_circle_2(const Point& p1, const Point& p2) {
+    ld cx = (p1.x + p2.x) / 2.0;
+    ld cy = (p1.y + p2.y) / 2.0;
+    ld dx = p1.x - cx;
+    ld dy = p1.y - cy;
+    ld r_sq = dx * dx + dy * dy;
+    return {cx, cy, sqrt(max((ld)0.0, r_sq)), r_sq};
+}
+
+Circle make_circle_3(const Point& p1, const Point& p2, const Point& p3) {
+    ld bx = p2.x - p1.x, by = p2.y - p1.y;
+    ld cx = p3.x - p1.x, cy = p3.y - p1.y;
+    ld B = bx * bx + by * by;
+    ld C = cx * cx + cy * cy;
+    ld D = bx * cy - by * cx;
+    
+    if (fabsl(D) < 1e-11) {
+        Circle c1 = make_circle_2(p1, p2);
+        Circle c2 = make_circle_2(p2, p3);
+        Circle c3 = make_circle_2(p1, p3);
+        if (c1.r_sq >= c2.r_sq && c1.r_sq >= c3.r_sq) return c1;
+        if (c2.r_sq >= c1.r_sq && c2.r_sq >= c3.r_sq) return c2;
+        return c3;
+    }
+    
+    ld cx_out = (cy * B - by * C) / (2 * D);
+    ld cy_out = (bx * C - cx * B) / (2 * D);
+    ld r_sq = cx_out * cx_out + cy_out * cy_out;
+    return {cx_out + p1.x, cy_out + p1.y, sqrt(max((ld)0.0, r_sq)), r_sq};
+}
+
+Circle get_mec(const vector<Point>& pts, const vector<int>& set_id, int target_id, int n) {
+    Circle c = {0, 0, 0, 0};
+    bool first = true;
+    for (int i = 0; i < n; ++i) {
+        if (set_id[i] != target_id) continue;
+        if (first) {
+            c = {pts[i].x, pts[i].y, 0, 0};
+            first = false;
+            continue;
+        }
+        if (outside(pts[i], c)) {
+            c = {pts[i].x, pts[i].y, 0, 0};
+            for (int j = 0; j < i; ++j) {
+                if (set_id[j] != target_id) continue;
+                if (outside(pts[j], c)) {
+                    c = make_circle_2(pts[i], pts[j]);
+                    for (int m = 0; m < j; ++m) {
+                        if (set_id[m] != target_id) continue;
+                        if (outside(pts[m], c)) {
+                            c = make_circle_3(pts[i], pts[j], pts[m]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return c;
+}
+
+struct Res { 
+    ld sum; 
+    struct C { ld r; pair<ld,ld> c; vector<pair<ld,ld>> p; }; 
+    vector<C> cs; 
+};
+
+Res solve(vector<pair<ld,ld>>& pts_in, int k) {
+    int n = pts_in.size();
+    if (n == 0 || k <= 0) return {0, {}};
+    
+    if (k >= n) {
+        vector<Res::C> all_cs;
+        for (auto& pt : pts_in) all_cs.push_back({0, pt, {pt}});
+        return {0, all_cs};
+    }
+
+    // Coordinates centering and scaling - prevents precision loss on ~10^9 values
+    ld ox = pts_in[0].first, oy = pts_in[0].second;
+    ld max_abs = 0;
+    for (int i = 0; i < n; ++i) {
+        max_abs = max({max_abs, fabsl(pts_in[i].first - ox), fabsl(pts_in[i].second - oy)});
+    }
+    if (max_abs < 1e-12) max_abs = 1.0;
+
+    // Single pre-shuffle avoids repetitive reallocation dynamically
+    vector<int> p_idx(n);
+    iota(p_idx.begin(), p_idx.end(), 0);
+    mt19937 rng(1337);
+    shuffle(p_idx.begin(), p_idx.end(), rng);
+
+    vector<Point> pts(n);
+    for (int i = 0; i < n; ++i) {
+        int orig_i = p_idx[i];
+        pts[i] = {(pts_in[orig_i].first - ox) / max_abs, (pts_in[orig_i].second - oy) / max_abs};
+    }
+
+    if (k == 1) {
+        vector<int> set_id(n, 1);
+        Circle c = get_mec(pts, set_id, 1, n);
+        Res::C res_c;
+        res_c.r = c.r * max_abs; 
+        res_c.c = {c.x * max_abs + ox, c.y * max_abs + oy};
+        res_c.p = pts_in;
+        return {res_c.r, {res_c}};
+    }
+
+    vector<ld> angles;
+    for (int i = 0; i < 2000; ++i) angles.push_back(M_PI * i / 2000.0);
+    
+    int max_pairs =100;
+    if (n * (n - 1) / 2 <= max_pairs) {
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                angles.push_back(atan2(pts[j].y - pts[i].y, pts[j].x - pts[i].x) + M_PI / 2.0);
+            }
+        }
+    } else {
+        for (int i = 0; i < max_pairs; ++i) {
+            int p1 = rng() % n;
+            int p2 = rng() % n;
+            if (p1 == p2) p2 = (p1 + 1) % n;
+            angles.push_back(atan2(pts[p2].y - pts[p1].y, pts[p2].x - pts[p1].x) + M_PI / 2.0);
+        }
+    }
+
+    ld best_sum = 1e18;
+    int best_k_split = 1;
+    vector<int> best_idx;
+
+    vector<int> idx(n), set_id(n);
+    vector<ld> proj(n);
+    vector<ld> pref_min_x(n), pref_max_x(n), pref_min_y(n), pref_max_y(n);
+    vector<ld> suff_min_x(n), suff_max_x(n), suff_min_y(n), suff_max_y(n);
+
+    for (ld ang : angles) {
+        ld cos_a = cos(ang), sin_a = sin(ang);
+        for (int i = 0; i < n; ++i) {
+            proj[i] = pts[i].x * cos_a + pts[i].y * sin_a;
+            idx[i] = i;
+        }
+        sort(idx.begin(), idx.end(), [&](int a, int b) { return proj[a] < proj[b]; });
+        
+        pref_min_x[0] = pts[idx[0]].x; pref_max_x[0] = pts[idx[0]].x;
+        pref_min_y[0] = pts[idx[0]].y; pref_max_y[0] = pts[idx[0]].y;
+        for(int i = 1; i < n; ++i) {
+            pref_min_x[i] = min(pref_min_x[i-1], pts[idx[i]].x);
+            pref_max_x[i] = max(pref_max_x[i-1], pts[idx[i]].x);
+            pref_min_y[i] = min(pref_min_y[i-1], pts[idx[i]].y);
+            pref_max_y[i] = max(pref_max_y[i-1], pts[idx[i]].y);
+        }
+        
+        suff_min_x[n-1] = pts[idx[n-1]].x; suff_max_x[n-1] = pts[idx[n-1]].x;
+        suff_min_y[n-1] = pts[idx[n-1]].y; suff_max_y[n-1] = pts[idx[n-1]].y;
+        for(int i = n-2; i >= 0; --i) {
+            suff_min_x[i] = min(suff_min_x[i+1], pts[idx[i]].x);
+            suff_max_x[i] = max(suff_max_x[i+1], pts[idx[i]].x);
+            suff_min_y[i] = min(suff_min_y[i+1], pts[idx[i]].y);
+            suff_max_y[i] = max(suff_max_y[i+1], pts[idx[i]].y);
+        }
+
+        for (int split_k = 1; split_k < n; ++split_k) {
+            ld lb1 = 0.5 * max(pref_max_x[split_k - 1] - pref_min_x[split_k - 1], 
+                               pref_max_y[split_k - 1] - pref_min_y[split_k - 1]);
+            ld lb2 = 0.5 * max(suff_max_x[split_k] - suff_min_x[split_k], 
+                               suff_max_y[split_k] - suff_min_y[split_k]);
+
+            // Bounding box heuristic pruning allows avoiding O(N) operations in 99.9% of steps.
+            if (lb1 + lb2 >= best_sum - 1e-9) continue;
+
+            for (int i = 0; i < n; ++i) set_id[i] = 2;
+            for (int i = 0; i < split_k; ++i) set_id[idx[i]] = 1;
+            
+            Circle c1 = get_mec(pts, set_id, 1, n);
+            Circle c2 = get_mec(pts, set_id, 2, n);
+            ld sum_r = c1.r + c2.r;
+            
+            if (sum_r < best_sum) {
+                best_sum = sum_r;
+                best_k_split = split_k;
+                best_idx = idx;
+            }
+        }
+    }
+
+    for (int i = 0; i < n; ++i) set_id[i] = 2;
+    for (int i = 0; i < best_k_split; ++i) set_id[best_idx[i]] = 1;
+
+    Circle c1 = get_mec(pts, set_id, 1, n);
+    Circle c2 = get_mec(pts, set_id, 2, n);
+
+    Res::C res_c1, res_c2;
+    res_c1.r = c1.r * max_abs;
+    res_c1.c = {c1.x * max_abs + ox, c1.y * max_abs + oy};
+    res_c2.r = c2.r * max_abs;
+    res_c2.c = {c2.x * max_abs + ox, c2.y * max_abs + oy};
+
+    for (int i = 0; i < n; ++i) {
+        if (set_id[i] == 1) res_c1.p.push_back(pts_in[p_idx[i]]);
+        else res_c2.p.push_back(pts_in[p_idx[i]]);
+    }
+
+    return {best_sum * max_abs, {res_c1, res_c2}};
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, k = 2;
+    if (cin >> n) {
+        vector<pair<ld, ld>> pts(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> pts[i].first >> pts[i].second;
+        }
+        auto ret = solve(pts, k);
+        cout << fixed << setprecision(9) << ret.sum << "\n";
+    }
+    return 0;
+}
+////////////////////////////////////////////////
+#include <iostream>
+#include <sstream>
+#include <set>
+#include <fstream>
+#include <algorithm>
+#include <cctype>
+#include <iomanip>
+#include <vector>
+#include <map>
+#include <queue>
+#include <numeric>
+#include <string>
+#include <cmath>
+#include <climits>
+#include <stack>
+#include <complex>
+#include <cstdlib>
+#include <cstring>
+#include <array>
+#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#include <bitset>
+#include <cassert>
+#include <tuple>
+#include <iterator>
+#include <random>
+#include <chrono>
+#include <list>
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef vector<ll> vi;
+typedef pair<int, int> pii;
+//const int mod = 998244353;
+//const int mod = 1e9 + 7;
+const int N=4e5+5;
+
+template<class T>
+int sgn(T x) { return (x > 0) - (x < 0); }
+
+template<class T>
+struct Point {
+    typedef Point P;
+    T x, y;
+
+    Point(T x = 0, T y = 0) : x(x), y(y) {}
+
+    bool operator<(P p) const { return tie(x, y) < tie(p.x, p.y); }
+
+    bool operator==(P p) const { return tie(x, y) == tie(p.x, p.y); }
+
+    P operator+(P p) const { return P(x + p.x, y + p.y); }
+
+    P operator-(P p) const { return P(x - p.x, y - p.y); }
+
+    P operator*(T d) const { return P(x * d, y * d); }
+
+    P operator/(T d) const { return P(x / d, y / d); }
+
+    T dot(P p) const { return x * p.x + y * p.y; }
+
+    T cross(P p) const { return x * p.y - y * p.x; }
+
+    T cross(P a, P b) const { return (a - *this).cross(b - *this); }
+
+    T dist2() const { return x * x + y * y; }
+
+    double dist() const { return sqrt((double) dist2()); }
+
+    double dist(P b) { return (*this - b).dist(); };
+
+    // angle to x-axis in interval [-pi, pi]
+    double angle() const { return atan2(y, x); }
+
+    P unit() const { return *this / dist(); } // makes dist()=1
+    P perp() const { return P(-y, x); } // rotates +90 degrees
+    P normal() const { return perp().unit(); }
+
+    P getVector(const P &p) const { return p - (*this); }
+
+    // returns point rotated 'a' radians ccw around the origin
+    P rotate(double a) const {
+        return P(x * cos(a) - y * sin(a), x * sin(a) + y * cos(a));
+    }
+
+    friend ostream &operator<<(ostream &os, P p) {
+        return os << "(" << p.x << "," << p.y << ")";
+    }
+
+    friend istream &operator>>(istream &is, P &p) {
+        return is >> p.x >> p.y;
+    }
+
+
+    // Project point onto line through a and b (assuming a != b).
+    P projectOnLine(const P &a, const P &b) const {
+        P ab = a.getVector(b);
+        P ac = a.getVector(*this);
+        return a + ab * ac.dot(ab) / a.dist2(b);
+    }
+
+    // Project point c onto line segment through a and b (assuming a != b).
+    P projectOnSegment(const P &a, const P &b) const {
+        P &c = *this;
+        P ab = a.getVector(b);
+        P ac = a.getVector(c);
+
+        long double r = dot(ac, ab), d = a.dist2(b);
+        if (r < 0) return a;
+        if (r > d) return b;
+
+        return a + ab * r / d;
+    }
+
+    P reflectAroundLine(const P &a, const P &b) const {
+        return projectOnLine(a, b) * 2 - (*this);
+    }
+};
+
+const ld eps = 1e-7;
+
+int dcmp(const ld &a, const ld &b){
+    if(fabs(a - b) < eps)
+        return 0;
+
+    return (a > b ? 1 : -1);
+}
+
+
+typedef Point<ld> P;
+#define rep(aa, bb, cc) for(int aa = bb; aa < cc;aa++)
+
+P ccCenter(const P& A, const P& B, const P& C) {
+    P b = C - A, c = B - A;
+    return A + (b * c.dist2() - c * b.dist2()).perp() / b.cross(c) / 2;
+}
+
+pair<P, ld> mec(vector<P> ps) {
+    if (ps.size()<=1) return {0,0};
+    shuffle(ps.begin(),ps.end(), mt19937(time(0)));
+    P o = ps[0];
+    double r = 0, EPS = 1 + 1e-8;
+    rep(i, 0, ps.size()) if ((o - ps[i]).dist() > r * EPS) {
+        o = ps[i], r = 0;
+        rep(j, 0, i) if ((o - ps[j]).dist() > r * EPS) {
+            o = (ps[i] + ps[j]) / 2;
+            r = (o - ps[i]).dist();
+            rep(k, 0, j) if ((o - ps[k]).dist() > r * EPS) {
+                o = ccCenter(ps[i], ps[j], ps[k]);
+                r = (o - ps[i]).dist();
+            }
+        }
+    }
+    return {o, r};
+}
+void solve() {
+    int n;
+    cin>>n;
+    vector <P> pts(n);
+    for (int i=0;i<n;i++) {
+        cin>>pts[i].x>>pts[i].y;
+    }
+    sort(pts.begin(),pts.end());
+    ld ans=1e18;
+    for (int i=0;i<n;i++) {
+        vector <P> pt=pts;
+        pt.erase(pt.begin()+i);
+        ans=min(ans,mec(pt).second);
+    }
+    for (int i=0;i<n;i++) {
+        for (int j=0;j<n;j++) {
+            if (i==j) continue;
+            vector <P> pt1,pt2;
+            pt1.push_back(pts[i]);
+            pt2.push_back(pts[j]);
+            for (int k=0;k<n;k++) {
+                if (k==i || k==j) continue;
+                if (dcmp(pts[k].cross(pts[i],pts[j]),0)<=0) {
+                    pt1.push_back(pts[k]);
+                } else pt2.push_back(pts[k]);
+            }
+            ans=min(ans,mec(pt1).second+mec(pt2).second);
+        }
+    }
+    cout<<fixed<<setprecision(9)<<ans<<'\n';
+}
+
+int main(){
+    ios_base::sync_with_stdio (0);
+    cin.tie (0);
+    int t=1;
+    //cin>>t;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
