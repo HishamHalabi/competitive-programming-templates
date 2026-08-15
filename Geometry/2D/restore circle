@@ -1,0 +1,114 @@
+/*
+===========================================================================
+Circle Geometry Functions for Competitive Programming
+===========================================================================
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const double EPS = 1e-9;
+
+struct Point {
+    double x, y;
+};
+
+/*
+===========================================================================
+1. Find possible centers given two points (p1, p2) and radius (R)
+===========================================================================
+Returns a vector of possible center points. 
+- 0 centers if the distance between p1 and p2 is greater than 2 * R.
+- 1 center if p1 and p2 are exactly at distance 2 * R (points form a diameter).
+- 2 centers otherwise (two possible circles passing through both points).
+*/
+vector<Point> get_circle_centers_from_2_points_and_r(Point p1, Point p2, double R) {
+    vector<Point> centers;
+    
+    // Distance squared between p1 and p2
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double q = sqrt(dx * dx + dy * dy);
+
+    // If points are too far apart for the given radius, no circle exists
+    if (q > 2.0 * R || q < EPS) {
+        return centers; // Empty
+    }
+
+    // Midpoint between p1 and p2
+    Point mid = {(p1.x + p2.x) / 2.0, (p1.y + p2.y) / 2.0};
+    
+    // Distance from midpoint to the center(s)
+    double distance_to_center = sqrt(max(0.0, R * R - (q / 2.0) * (q / 2.0)));
+
+    // Unit vector perpendicular to (p1 -> p2)
+    double ux = -dy / q;
+    double uy = dx / q;
+
+    // Center 1
+    centers.push_back({mid.x + distance_to_center * ux, mid.y + distance_to_center * uy});
+
+    // If distance_to_center is near zero, points form a diameter (only 1 unique center)
+    if (distance_to_center > EPS) {
+        // Center 2
+        centers.push_back({mid.x - distance_to_center * ux, mid.y - distance_to_center * uy});
+    }
+
+    return centers;
+}
+
+
+/*
+===========================================================================
+2. Find radius and center given 3 points (Circumcircle)
+===========================================================================
+Stores the calculated center in 'out_center' and returns the radius.
+Returns -1.0 if the 3 points are collinear (cannot form a circle).
+*/
+struct Circle {
+    Point center;
+    double radius;
+    bool valid;
+};
+
+Circle get_circle_from_3_points(Point p1, Point p2, Point p3) {
+    double d = 2.0 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+    
+    // Check if points are collinear
+    if (abs(d) < EPS) {
+        return {{0, 0}, -1.0, false};
+    }
+
+    double p1_sq = p1.x * p1.x + p1.y * p1.y;
+    double p2_sq = p2.x * p2.x + p2.y * p2.y;
+    double p3_sq = p3.x * p3.x + p3.y * p3.y;
+
+    double cx = (p1_sq * (p2.y - p3.y) + p2_sq * (p3.y - p1.y) + p3_sq * (p1.y - p2.y)) / d;
+    double cy = (p1_sq * (p3.x - p2.x) + p2_sq * (p1.x - p3.x) + p3_sq * (p2.x - p1.x)) / d;
+
+    Point center = {cx, cy};
+    double radius = sqrt((p1.x - cx) * (p1.x - cx) + (p1.y - cy) * (p1.y - cy));
+
+    return {center, radius, true};
+}
+
+int main() {
+    // Example usage:
+    Point p1 = {0, 0}, p2 = {4, 0};
+    double r = 2.5;
+
+    vector<Point> centers = get_circle_centers_from_2_points_and_r(p1, p2, r);
+    cout << "Possible centers from 2 points & R: " << centers.size() << "\n";
+    for (auto c : centers) {
+        cout << "Center: (" << c.x << ", " << c.y << ")\n";
+    }
+
+    // Example 3 points
+    Circle circ = get_circle_from_3_points({0, 0}, {0, 4}, {4, 0});
+    if (circ.valid) {
+        cout << "Circumcircle -> Center: (" << circ.center.x << ", " << circ.center.y 
+             << "), Radius: " << circ.radius << "\n";
+    }
+
+    return 0;
+}
