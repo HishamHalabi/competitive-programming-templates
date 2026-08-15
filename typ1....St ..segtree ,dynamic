@@ -114,3 +114,83 @@ signed main() {
     }
 
 }
+
+ #define item int 
+struct node {
+    int val = 0  ; 
+    int lx = 0, rx = 0;
+    node *lft = nullptr, *rght = nullptr;
+    node() {}
+    void extend() {
+        if (rx - lx == 1) return;
+        int md = (lx + rx) / 2;
+        if (!lft) {
+            lft = new node();
+            lft->lx = lx;
+            lft->rx = md;
+        }
+        if (!rght) {
+            rght = new node();
+            rght->lx = md;
+            rght->rx = rx;
+        }
+    }
+};
+
+struct segtree{
+    vector<item> val;
+    node *root;
+    int sz = 1;
+ 
+    item NeutralELement  ;
+    segtree(int n) {
+        while (sz < n) sz*=2;
+        root = new node();
+        root->lx = 0;
+        root->rx = sz;
+    }
+ 
+    item  NEUTRAl_ElEMENT  = 0   ;
+    item merge(item& m1 ,item& m2 , int x=-1){
+        return m1 + m2   ; 
+    }
+
+    void change(int  i  , item  oper, node *nd) {
+        if (nd->rx-nd->lx  == 1) {
+            nd->val += oper ; 
+            return;
+        }
+        nd->extend();
+        int md = (nd->lx    +  nd->rx)/2 ; 
+        if (i < md) 
+               change(i, oper, nd->lft);
+        else    
+               change(i, oper, nd->rght);
+        nd->val = merge(nd->lft->val, nd->rght->val);
+    }
+ 
+    void change(int i , item  oper) {
+        change(i , oper, root);
+    }
+   
+   item calc (int l ,  int r , node * nd)  {
+         int lx = nd->lx , rx = nd->rx;
+         if ( l  >=rx  || lx>=r) {
+                  return  NeutralELement  ;
+         }
+         if  (lx>=l and rx<=r) {
+                   return nd->val ;
+         }
+         
+         nd->extend() ;  
+         item res1 = calc(l , r , nd->lft) ;
+         item res2 = calc(l  ,r  , nd->rght) ;
+         item res=  merge(res1 ,res2) ;
+         return res;
+    }
+ 
+    item  calc(int  l ,  int r) {
+            return calc(  l ,r   , root) ;
+    }
+};
+ 
