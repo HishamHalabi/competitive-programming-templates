@@ -1,0 +1,66 @@
+#include <vector>
+#include <cmath>
+#include <tuple>
+#include <algorithm>
+#include <random>
+
+using namespace std;
+
+template<typename T>
+tuple<double, double, double> minEnclosingCircle(const vector<pair<T, T>>& input_pts) {
+    using P = pair<double, double>;
+    vector<P> p(input_pts.begin(), input_pts.end());
+    
+    // Shuffle to ensure O(N) expected time bounds
+    mt19937 rng(1337);
+    shuffle(p.begin(), p.end(), rng);
+
+    auto dist = [](P a, P b) { return hypot(a.first - b.first, a.second - b.second); };
+    
+    // Helper: Circle from 2 points
+    auto get2 = [&](P a, P b) {
+        return make_tuple(dist(a, b) / 2.0, (a.first + b.first) / 2.0, (a.second + b.second) / 2.0);
+    };
+
+    // Helper: Circle from 3 points
+    auto get3 = [&](P a, P b, P c) {
+        double bx = b.first - a.first, by = b.second - a.second;
+        double cx = c.first - a.first, cy = c.second - a.second;
+        double B = bx * bx + by * by, C = cx * cx + cy * cy, D = bx * cy - by * cx;
+        double ux = (cy * B - by * C) / (2 * D) + a.first;
+        double uy = (bx * C - cx * B) / (2 * D) + a.second;
+        return make_tuple(dist({ux, uy}, a), ux, uy);
+    };
+
+    if (p.empty()) return {0.0, 0.0, 0.0};
+    if (p.size() == 1) return {0.0, p[0].first, p[0].second};
+
+    tuple<double, double, double> c = {0.0, p[0].first, p[0].second};
+    
+    for (int i = 1; i < p.size(); i++) {
+        if (dist(p[i], {get<1>(c), get<2>(c)}) > get<0>(c) + 1e-9) {
+            c = {0.0, p[i].first, p[i].second};
+            for (int j = 0; j < i; j++) {
+                if (dist(p[j], {get<1>(c), get<2>(c)}) > get<0>(c) + 1e-9) {
+                    c = get2(p[i], p[j]);
+                    for (int k = 0; k < j; k++) {
+                        if (dist(p[k], {get<1>(c), get<2>(c)}) > get<0>(c) + 1e-9) {
+                            c = get3(p[i], p[j], p[k]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return c;
+}
+
+int main() {
+    vector<pair<long long, long long>> points = {{0, 0}, {10, 0}, {0, 10}};
+    
+    auto [r, x, y] = minEnclosingCircle(points);
+    
+    // Prints: Radius: 7.07107, Center: (5, 5)
+    cout << "Radius: " << r << ", Center: (" << x << ", " << y << ")\n";
+    return 0;
+}
