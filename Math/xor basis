@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+template<int BITS = 60>
+struct XorBasis {
+    long long basis[BITS];
+    int sz;
+
+    XorBasis() {
+        memset(basis, 0, sizeof(basis));
+        sz = 0;
+    }
+
+    // Insert a value into the basis
+    bool insert(long long x) {
+        for (int i = BITS - 1; i >= 0; i--) {
+            if ((x >> i) & 1) {
+                if (!basis[i]) {
+                    basis[i] = x;
+                    sz++;
+                    return true; // Successfully added to basis
+                }
+                x ^= basis[i];
+            }
+        }
+        return false; // x is already representable by the current basis
+    }
+
+    // Maximum XOR sum possible from the basis
+    long long get_max() {
+        long long res = 0;
+        for (int i = BITS - 1; i >= 0; i--) {
+            res = max(res, res ^ basis[i]);
+        }
+        return res;
+    }
+
+    // Check if x can be formed by some subset XOR
+    bool can_form(long long x) {
+        for (int i = BITS - 1; i >= 0; i--) {
+            if ((x >> i) & 1) {
+                if (!basis[i]) return false;
+                x ^= basis[i];
+            }
+        }
+        return x == 0;
+    }
+};
