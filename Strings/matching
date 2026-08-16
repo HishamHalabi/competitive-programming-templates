@@ -224,6 +224,282 @@ struct SAAM {
         return cnt[target_node];
     }
 };
+///////////////////////////////////////////////////
+#include <bits/stdc++.h>
+using namespace std;
+
+constexpr long long MOD1 = 1e9 + 7;
+constexpr long long MOD2 = 1e9 + 9;
+constexpr long long B1 = 311;
+constexpr long long B2 = 317;
+
+vector<long long> p1, p2;
+
+struct HashPair {
+    long long h1, h2;
+    bool operator==(const HashPair& other) const {
+        return h1 == other.h1 && h2 == other.h2;
+    }
+};
+
+class HashManager {
+public:
+    string t;
+    int n;
+    vector<long long> pref1, pref2;
+    
+    // Tracks the two range calls in testCase()
+    int call_count = 0;
+    int l1 = 0, r1 = 0, l2 = 0, r2 = 0;
+
+    void init(const string& str) {
+        t = str;
+        n = t.length();
+        p1.assign(n + 1, 1);
+        p2.assign(n + 1, 1);
+        pref1.assign(n + 1, 0);
+        pref2.assign(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            p1[i + 1] = (p1[i] * B1) % MOD1;
+            p2[i + 1] = (p2[i] * B2) % MOD2;
+            pref1[i + 1] = (pref1[i] * B1 + (unsigned char)t[i]) % MOD1;
+            pref2[i + 1] = (pref2[i] * B2 + (unsigned char)t[i]) % MOD2;
+        }
+        call_count = 0;
+    }
+
+    HashPair get_hash(int l, int r) {
+        if (call_count == 0) {
+            l1 = l; r1 = r;
+            call_count = 1;
+        } else {
+            l2 = l; r2 = r;
+            call_count = 2;
+        }
+        if (l > r) return {0, 0};
+        long long h1_val = (pref1[r + 1] - pref1[l] * p1[r - l + 1]) % MOD1;
+        if (h1_val < 0) h1_val += MOD1;
+        long long h2_val = (pref2[r + 1] - pref2[l] * p2[r - l + 1]) % MOD2;
+        if (h2_val < 0) h2_val += MOD2;
+        return {h1_val, h2_val};
+    }
+
+    HashPair get_prefix_hash_of_query(int len) const {
+        int len1 = r1 - l1 + 1;
+        if (len <= len1) {
+            int r_sub = l1 + len - 1;
+            long long h1_val = (pref1[r_sub + 1] - pref1[l1] * p1[len]) % MOD1;
+            if (h1_val < 0) h1_val += MOD1;
+            long long h2_val = (pref2[r_sub + 1] - pref2[l1] * p2[len]) % MOD2;
+            if (h2_val < 0) h2_val += MOD2;
+            return {h1_val, h2_val};
+        } else {
+            int len2 = len - len1;
+            HashPair part1 = get_hash_range(l1, r1);
+            HashPair part2 = get_hash_range(l2, l2 + len2 - 1);
+            long long h1_val = (part1.h1 * p1[len2] + part2.h1) % MOD1;
+            long long h2_val = (part1.h2 * p2[len2] + part2.h2) % MOD2;
+            return {h1_val, h2_val};
+        }
+    }
+
+    char get_char_of_query(int idx) const {
+        int len1 = r1 - l1 + 1;
+        if (idx < len1) {
+            return t[l1 + idx];
+        } else {
+            return t[l2 + (idx - len1)];
+        }
+    }
+
+private:
+    HashPair get_hash_range(int l, int r) const {
+        if (l > r) return {0, 0};
+        long long h1_val = (pref1[r + 1] - pref1[l] * p1[r - l + 1]) % MOD1;
+        if (h1_val < 0) h1_val += MOD1;
+        long long h2_val = (pref2[r + 1] - pref2[l] * p2[r - l + 1]) % MOD2;
+        if (h2_val < 0) h2_val += MOD2;
+        return {h1_val, h2_val};
+    }
+};
+
+HashManager* active_H = nullptr;
+
+class SFX {
+    int n;
+    string s;
+    vector<int> sa, lcp, rank_arr;
+    vector<vector<int>> st;
+    vector<long long> sp1, sp2, spref1, spref2;
+
+public:
+    void init(const string& str) {
+        s = str;
+        n = s.length();
+        sa.resize(n);
+        iota(sa.begin(), sa.end(), 0);
+        rank_arr.resize(n);
+        for (int i = 0; i < n; i++) rank_arr[i] = (unsigned char)s[i];
+
+        vector<int> tmp(n);
+        for (int k = 1; k < n; k *= 2) {
+            auto cmp = [&](int i, int j) {
+                if (rank_arr[i] != rank_arr[j]) return rank_arr[i] < rank_arr[j];
+                int ri = (i + k < n) ? rank_arr[i + k] : -1;
+                int rj = (j + k < n) ? rank_arr[j + k] : -1;
+                return ri < rj;
+            };
+            sort(sa.begin(), sa.end(), cmp);
+            tmp[sa[0]] = 0;
+            for (int i = 1; i < n; i++) {
+                tmp[sa[i]] = tmp[sa[i - 1]] + cmp(sa[i - 1], sa[i]);
+            }
+            rank_arr = tmp;
+            if (rank_arr[sa.back()] == n - 1) break;
+        }
+
+        // Kasai's algorithm for LCP
+        lcp.assign(n, 0);
+        vector<int> inv_sa(n);
+        for (int i = 0; i < n; i++) inv_sa[sa[i]] = i;
+        int h = 0;
+        for (int i = 0; i < n; i++) {
+            if (inv_sa[i] > 0) {
+                int j = sa[inv_sa[i] - 1];
+                while (i + h < n && j + h < n && (unsigned char)s[i + h] == (unsigned char)s[j + h]) h++;
+                lcp[inv_sa[i]] = h;
+                if (h > 0) h--;
+            }
+        }
+
+        // Sparse table for RMQ on LCP
+        int K = 32 - __builtin_clz(n);
+        st.assign(K, vector<int>(n));
+        for (int i = 0; i < n; i++) st[0][i] = lcp[i];
+        for (int j = 1; j < K; j++) {
+            for (int i = 0; i + (1 << j) <= n; i++) {
+                st[j][i] = min(st[j - 1][i], st[j - 1][i + (1 << (j - 1))]);
+            }
+        }
+
+        sp1.resize(n + 1, 1); sp2.resize(n + 1, 1);
+        spref1.resize(n + 1, 0); spref2.resize(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            sp1[i + 1] = (sp1[i] * B1) % MOD1;
+            sp2[i + 1] = (sp2[i] * B2) % MOD2;
+            spref1[i + 1] = (spref1[i] * B1 + (unsigned char)s[i]) % MOD1;
+            spref2[i + 1] = (spref2[i] * B2 + (unsigned char)s[i]) % MOD2;
+        }
+        active_H = nullptr;
+    }
+
+    HashPair get_s_hash(int l, int len) const {
+        long long h1 = (spref1[l + len] - spref1[l] * sp1[len]) % MOD1;
+        if (h1 < 0) h1 += MOD1;
+        long long h2 = (spref2[l + len] - spref2[l] * sp2[len]) % MOD2;
+        if (h2 < 0) h2 += MOD2;
+        return {h1, h2};
+    }
+
+    int count_hash(HashPair hi, int len) {
+        // Find which active HashManager instance corresponds to this test case
+        HashManager* hm = active_H; 
+        if (hm) hm->call_count = 0;
+
+        auto compare = [&](int suf_idx) {
+            int len_s = n - suf_idx;
+            int low = 0, high = min(len_s, len), common = 0;
+            while (low <= high) {
+                int mid = low + (high - low) / 2;
+                if (mid == 0) {
+                    common = 0;
+                    low = mid + 1;
+                    continue;
+                }
+                HashPair h_s = get_s_hash(suf_idx, mid);
+                HashPair h_p = hm ? hm->get_prefix_hash_of_query(mid) : HashPair{0, 0};
+                if (h_s == h_p) {
+                    common = mid;
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+            if (common == len) return 0;
+            if (common == len_s) return -1;
+            char c_s = s[suf_idx + common];
+            char c_p = hm ? hm->get_char_of_query(common) : 0;
+            return (c_s < c_p) ? -1 : 1;
+        };
+
+        // Lower bound
+        int l = 0, r = n, lb = n;
+        while (l < r) {
+            int mid = l + (r - l) / 2;
+            if (compare(sa[mid]) >= 0) {
+                lb = mid;
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+
+        // Upper bound
+        l = 0; r = n; int ub = n;
+        while (l < r) {
+            int mid = l + (r - l) / 2;
+            if (compare(sa[mid]) > 0) {
+                ub = mid;
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+
+        return ub - lb;
+    }
+};
+
+void testCase() {
+    string s , t;
+    cin >> s >> t;
+   
+    SFX sf;
+    sf.init(s) ; 
+  
+    HashManager H;
+    H.init(t) ; 
+    active_H = &H; // Link active HashManager instance
+ 
+    int q;
+    cin >> q;
+ 
+    while(q--) { 
+          int l , r , i , j ;
+          cin >> l >> r >> i >> j ; 
+          l -- , r -- , i -- , j -- ;
+          int len = r - l + j - i +2 ; 
+          auto hl = H.get_hash( l , r) ; 
+          auto hi = H.get_hash( i , j ) ; 
+           
+          hi.h1 = (hi.h1 + hl.h1 *p1[j - i+1])%MOD1 ; 
+          hi.h2 = (hi.h2 + hl.h2 * p2[j - i+1])%MOD2;
+         
+          cout<<sf.count_hash(hi , len) <<"\n" ; 
+    }
+}
+ 
+int32_t main() {
+    ios_base::sync_with_stdio(0) ;
+    cin.tie(0 ) ;
+    freopen("strings.in", "r", stdin);
+   
+    long long tc = 1;
+    cin >> tc ;
+    while(tc-- ) {
+        testCase() ;
+    }
+}
 ////////////////////////////////////////////////////////////
 struct DynamicStringCounter {
     int N, sz, lst;
